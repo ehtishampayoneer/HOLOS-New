@@ -372,11 +372,21 @@ window.srUpdate = function(q) {
    Shared components (used across customer screens as globals)
    ============================================================ */
 
+function backBtn() {
+  const h = location.hash || '';
+  const noBack = ['', '#/', '#/customer/marketplace', '#/launcher', '#/onboarding'];
+  if (noBack.includes(h)) return '';
+  return `<button class="mk-nav-btn" onclick="(window.history.length>1?history.back():Router.go('/customer/marketplace'))" aria-label="Back" title="Back" style="margin-right:6px;flex-shrink:0;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>`;
+}
+
 function navMarkup(customer) {
   const favCount = (customer.favorites || []).length;
   return `
     <header class="mk-nav">
       <div class="mk-nav-inner">
+        ${backBtn()}
         <a href="#/customer/marketplace" class="mk-nav-brand">HOL<span>O</span>S</a>
         <div class="mk-nav-search">
           <svg class="mk-nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
