@@ -69,7 +69,7 @@ const Icons = {
 
 function icon(name, className = '') {
   const svg = Icons[name] || Icons.other;
-  return svg.replace('<svg', `<svg class="${className}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`);
+  return svg.replace('<svg', `<svg class="${className}" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`);
 }
 
 window.icon = icon;
