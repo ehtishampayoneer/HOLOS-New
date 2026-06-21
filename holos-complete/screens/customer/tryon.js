@@ -547,11 +547,10 @@ function renderFootTryOn(product) {
           <model-viewer
             id="foot-model"
             src="${product.models.glb}"
-            ${product.models.usdz ? `ios-src="${product.models.usdz}"` : ''}
             ${product.models.poster ? `poster="${product.models.poster}"` : ''}
             alt="${product.name}"
             ar
-            ar-modes="webxr scene-viewer quick-look"
+            ar-modes="webxr quick-look"
             ar-scale="fixed"
             ar-placement="floor"
             scale="1 1 1"
