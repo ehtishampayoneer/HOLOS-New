@@ -184,6 +184,39 @@ const ModelFit = (() => {
     log('ModelFit', `${label} [${strategy}] · scales ${sx.toFixed(4)} ${sy.toFixed(4)} ${sz.toFixed(4)} · raw ${raw.x.toFixed(2)}×${raw.y.toFixed(2)}×${raw.z.toFixed(2)}m`);
   }
 
+  /* Reset a viewer back to its in-page "store preview" look: scale 1 and
+     re-framed so the model fills its box nicely, whatever its real size. */
+  function resetFit(mvEl) {
+    if (!mvEl) return;
+    mvEl.setAttribute('scale', '1 1 1');
+    if ('scale' in mvEl) { try { mvEl.scale = '1 1 1'; } catch (e) {} }
+    if (mvEl.updateFraming) { try { mvEl.updateFraming(); } catch (e) {} }
+  }
+
+  /* Launch AR at REAL-WORLD size, then return the preview to auto-fit.
+     Preview/thumbnail stays scale 1 (nice framing); the real cm size is
+     applied only for the AR session and reset the moment AR closes. */
+  async function launchAR(mvEl, sizeOrCanvas, opts = {}) {
+    if (!mvEl) return;
+    if (typeof mvEl.activateAR !== 'function') {
+      alert('AR requires a phone with iOS Safari or Android Chrome.');
+      return;
+    }
+    if (sizeOrCanvas != null) {
+      try { await apply(mvEl, sizeOrCanvas, opts); }
+      catch (e) { log('ModelFit', 'AR pre-scale failed: ' + e.message, 'warn'); }
+    }
+    const onStatus = (ev) => {
+      if (ev.detail && ev.detail.status === 'not-presenting') {
+        mvEl.removeEventListener('ar-status', onStatus);
+        resetFit(mvEl);
+      }
+    };
+    mvEl.addEventListener('ar-status', onStatus);
+    try { const r = mvEl.activateAR(); if (r && r.catch) r.catch(() => {}); }
+    catch (e) { log('ModelFit', 'activateAR failed: ' + e.message, 'warn'); }
+  }
+
   /* Suggested sizes by subcategory — used to pre-fill the size inputs
      so seller/admin don't have to guess. Values in cm: { name, w, h, d }. */
   const SIZE_HINTS = {
@@ -292,7 +325,7 @@ const ModelFit = (() => {
     if (mvEl) _rawCache.delete(mvEl);
   }
 
-  return { apply, sizeHint, getSuggestion, invalidate, SIZE_HINTS };
+  return { apply, launchAR, resetFit, sizeHint, getSuggestion, invalidate, SIZE_HINTS };
 })();
 
 window.ModelFit = ModelFit;
