@@ -22,13 +22,10 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
     document.querySelectorAll('.ep-photo-slot').forEach((slot, i) => wireEpPhotoSlot(slot, i, pid));
     SizeEditor.injectStyles();
 
-    // Apply real-world size to the preview model-viewer so seller sees true scale.
+    // Store preview auto-fits the frame (scale 1). Real-world size is applied
+    // only when the seller taps "Test in AR" (launchEpAR) and reset on exit.
     const mv = document.querySelector('.ep-model-preview model-viewer');
-    if (mv && p?.models?.realDimsCm) {
-      const d = p.models.realDimsCm;
-      const strategy = p.models.scaleStrategy || 'auto';
-      if (d.w || d.h || d.d) ModelFit.apply(mv, d, { strategy });
-    }
+    if (mv) ModelFit.resetFit(mv);
 
     // Live-update preview when any W/H/D input changes.
     const updatePreview = () => {
@@ -36,8 +33,6 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
       const mvEl = document.querySelector('.ep-model-preview model-viewer');
       if (!mvEl) return;
       const { w, h, d } = size.realDimsCm;
-      const strategy = p?.models?.scaleStrategy || 'auto';
-      if (w || h || d) ModelFit.apply(mvEl, size.realDimsCm, { strategy });
       const hint = document.querySelector('.ep-preview-hint');
       if (hint) {
         if (!(w || h || d)) {
@@ -168,6 +163,7 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
 
           ${p.models?.glb ? `
             <div class="ep-model-preview">
+              <div class="ep-section-label">Store preview <span>· auto-fits the frame</span></div>
               <model-viewer
                 src="${p.models.glb}"
                 alt="${p.name}"
@@ -177,10 +173,9 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
                 shadow-intensity="1" exposure="1.1"
                 environment-image="neutral"
                 style="width:100%;height:340px;background:var(--bg);border-radius:var(--r-md);">
-                <button slot="ar-button" class="ep-ar-btn">${icon('cube')} View in your room (AR)</button>
               </model-viewer>
               <div class="ep-preview-actions">
-                <button class="btn btn-ghost" onclick="document.querySelector('.ep-model-preview model-viewer').activateAR?.()">${icon('cube')} Tap to place in AR</button>
+                <button class="btn btn-ghost" onclick="launchEpAR()">${icon('cube')} Test in AR (real size)</button>
                 <button class="btn btn-primary" onclick="window.open('#/customer/product/${p.id}', '_blank')">${icon('eye')} See customer view (new tab)</button>
               </div>
               <div class="ep-preview-hint">${(() => {
@@ -220,6 +215,9 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
     .ep-preview-section { background: linear-gradient(135deg, var(--accent-soft), var(--surface)); }
     .ep-preview-desc { font-size: var(--t-small); color: var(--ink-dim); line-height: 1.5; margin-bottom: var(--s-4); }
     .ep-model-preview { display: flex; flex-direction: column; gap: var(--s-3); }
+    .ep-section-label { font-size: var(--t-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); }
+    .ep-section-label span { font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--ink-muted); }
+    .ep-model-preview model-viewer::part(default-ar-button) { display: none; }
     .ep-preview-actions { display: flex; gap: var(--s-2); flex-wrap: wrap; }
     .ep-preview-actions .btn { flex: 1; min-width: 0; }
     .ep-preview-hint { padding: var(--s-3) var(--s-4); background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); }
@@ -526,4 +524,16 @@ async function setAsThumb() {
   closeEpPhotoMenu({target:{classList:{contains:()=>true}}});
   alert('That photo is now the product thumbnail.');
   Router.reload();
+}
+
+/* Launch AR from the seller's edit screen at the real-life cm currently typed.
+   Preview stays auto-fit; AR shows true size (ModelFit.launchAR resets on exit). */
+function launchEpAR() {
+  const mv = document.querySelector('.ep-model-preview model-viewer');
+  if (!mv) return;
+  const w = +(document.getElementById('ep-w')?.value) || 0;
+  const h = +(document.getElementById('ep-h')?.value) || 0;
+  const d = +(document.getElementById('ep-d')?.value) || 0;
+  if (!(w || h || d)) { alert('Enter the real-life Width / Height / Depth (cm) first so AR shows the true size.'); return; }
+  ModelFit.launchAR(mv, { w, h, d }, { strategy: 'auto' });
 }
