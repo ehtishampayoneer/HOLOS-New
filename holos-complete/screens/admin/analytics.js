@@ -250,8 +250,8 @@ Router.register('/admin/analytics', () => {
       .an-table-ref { color: var(--danger); }
 
       .an-products { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
-      .an-product { display: grid; transition: background 160ms; }
-      .an-product:hover { background: var(--surface-elev) !important; } grid-template-columns: 32px 1fr auto; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border); }
+      .an-product { display: grid; grid-template-columns: 32px 1fr auto; gap: var(--s-3); align-items: center; padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border); transition: background 160ms; }
+      .an-product:hover { background: var(--surface-elev) !important; }
       .an-product:last-child { border-bottom: none; }
       .an-product-rank { font-size: var(--t-body); font-weight: 700; color: var(--ink-muted); text-align: center; }
       .an-product-name { font-size: var(--t-small); font-weight: 600; }
