@@ -170,9 +170,8 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
             <div class="ep-model-preview">
               <model-viewer
                 src="${p.models.glb}"
-                ${p.models.usdz ? `ios-src="${p.models.usdz}"` : ''}
                 alt="${p.name}"
-                ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed"
+                ar ar-modes="webxr quick-look" ar-scale="fixed"
                 camera-controls auto-rotate auto-rotate-delay="800"
                 rotation-per-second="14deg"
                 shadow-intensity="1" exposure="1.1"
