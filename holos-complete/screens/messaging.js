@@ -60,7 +60,7 @@
               <div class="msg-top-sub">${subtitle}</div>
             </div>
           </div>
-          <button class="btn-icon-bare" style="color:white;" onclick="refreshMessages('${shopId}', '${sender}')" title="Refresh">${icon('plus')}</button>
+          <button class="btn-icon-bare" style="color:white;" onclick="refreshMessages('${shopId}', '${sender}')" title="Refresh">${icon('rotate')}</button>
         </header>
 
         <main class="msg-thread" id="msg-thread-${shopId}">
