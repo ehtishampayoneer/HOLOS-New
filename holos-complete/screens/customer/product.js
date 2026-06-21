@@ -84,10 +84,14 @@ function renderProductPage(productId) {
                 <model-viewer
                   id="pp2-model"
                   src="${product.models.glb}"
-                  ${product.models.usdz ? `ios-src="${product.models.usdz}"` : ''}
                   ${product.models.poster ? `poster="${product.models.poster}"` : ''}
                   alt="${(product.name || '').replace(/"/g, '&quot;')}"
-                  ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed"
+                  ar ar-modes="webxr quick-look" ar-scale="fixed"
+                  data-rw="${product.models.realDimsCm?.w || 0}"
+                  data-rh="${product.models.realDimsCm?.h || 0}"
+                  data-rd="${product.models.realDimsCm?.d || 0}"
+                  data-rlongest="${product.models.realSizeCm || 0}"
+                  data-strategy="${product.models.scaleStrategy || 'auto'}"
                   camera-controls touch-action="pan-y"
                   auto-rotate auto-rotate-delay="2400" rotation-per-second="14deg"
                   shadow-intensity="1" exposure="1.15"
@@ -360,10 +364,20 @@ function submitReview(productId) {
   Router.reload();
 }
 
-function launchRoomAR() {
+async function launchRoomAR() {
   const mv = document.getElementById('pp2-model');
-  if (mv && mv.activateAR) mv.activateAR();
-  else alert('AR requires a phone with iOS Safari or Android Chrome.');
+  if (!mv || !mv.activateAR) { alert('AR requires a phone with iOS Safari or Android Chrome.'); return; }
+  // Lock the model to its real-world size at the moment AR launches. WebXR and
+  // the iOS auto-generated USDZ both honor the applied scale, so AR appears at
+  // the exact declared cm — never the raw model size.
+  try {
+    const w = +mv.dataset.rw || 0, h = +mv.dataset.rh || 0, d = +mv.dataset.rd || 0;
+    const longest = +mv.dataset.rlongest || 0;
+    const strategy = mv.dataset.strategy || 'auto';
+    if (w || h || d) await ModelFit.apply(mv, { w, h, d }, { strategy });
+    else if (longest) await ModelFit.apply(mv, longest, { strategy });
+  } catch (e) { log('Customer/Product', 'AR scale re-apply failed: ' + e.message, 'warn'); }
+  mv.activateAR();
 }
 
 function orderOnWhatsApp(productId) {
