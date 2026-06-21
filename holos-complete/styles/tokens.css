@@ -1,0 +1,161 @@
+/* ============================================================
+   HOLOS — Design Tokens (v6 · editorial-refined)
+   The single source of truth for color, typography, spacing.
+   Inspired by premium fashion editorial (COS, Aesop, Apple).
+   ============================================================ */
+
+:root {
+  /* ----- Surfaces ----- */
+  --bg: #F5F2EC;          /* soft warm cream — page background */
+  --bg-pure: #FAF8F3;     /* slightly brighter cream */
+  --bg-deep: #1A1714;     /* warm near-black */
+  --surface: #FFFFFF;     /* pure white — cards float on cream */
+  --surface-elev: #F9F6F0;
+  --surface-dark: #1F1B17;
+  --surface-tint: #EFEAE0;
+
+  /* ----- Ink (text) ----- */
+  --ink: #1A1714;         /* warm near-black */
+  --ink-strong: #0A0807;
+  --ink-dim: #6B665E;     /* muted warm gray */
+  --ink-muted: #A8A096;   /* light warm gray */
+  --ink-faint: #C9C2B5;
+  --ink-invert: #FAF8F3;
+
+  /* ----- Primary accent: warm bronze (editorial premium) ----- */
+  --accent: #8B6F47;
+  --accent-hover: #735A38;
+  --accent-soft: rgba(139, 111, 71, 0.08);
+  --accent-text: #FAF8F3;
+
+  /* ----- Secondary: deep terracotta (high-energy CTAs) ----- */
+  --coral: #B8553A;
+  --coral-hover: #A0472F;
+  --coral-soft: rgba(184, 85, 58, 0.10);
+
+  /* ----- Semantic colors (all warm-toned) ----- */
+  --success: #5C8A6D;
+  --success-soft: rgba(92, 138, 109, 0.10);
+  --warn: #C49A4A;
+  --warn-soft: rgba(196, 154, 74, 0.12);
+  --danger: #B0463A;
+  --danger-soft: rgba(176, 70, 58, 0.10);
+  --info: #5A7A95;
+  --info-soft: rgba(90, 122, 149, 0.10);
+
+  /* ----- Borders ----- */
+  --border: rgba(26, 23, 20, 0.06);
+  --border-strong: rgba(26, 23, 20, 0.12);
+  --border-dark: rgba(250, 248, 243, 0.10);
+
+  /* ============================================================
+     Typography — fluid scale using clamp(min, preferred, max)
+     Scales smoothly from mobile to ultrawide with no breakpoints
+     ============================================================ */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --t-display: clamp(2.5rem, 6vw, 4.5rem);
+  --t-h1: clamp(1.75rem, 3.5vw, 2.5rem);
+  --t-h2: clamp(1.3rem, 2.2vw, 1.75rem);
+  --t-h3: clamp(1.05rem, 1.5vw, 1.25rem);
+  --t-body: clamp(0.9375rem, 1.05vw, 1rem);
+  --t-small: 0.8125rem;
+  --t-micro: 0.6875rem;
+
+  --w-light: 300;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
+  --w-black: 800;
+
+  /* ============================================================
+     Spacing — 8-point system (multiples of 0.5rem = 8px)
+     ============================================================ */
+  --s-1: 0.25rem;   /*  4px */
+  --s-2: 0.5rem;    /*  8px */
+  --s-3: 0.75rem;   /* 12px */
+  --s-4: 1rem;      /* 16px */
+  --s-5: 1.25rem;   /* 20px */
+  --s-6: 1.5rem;    /* 24px */
+  --s-7: 2rem;      /* 32px */
+  --s-8: 3rem;      /* 48px */
+  --s-9: 4rem;      /* 64px */
+  --s-10: 6rem;     /* 96px */
+  --s-11: 8rem;     /* 128px */
+
+  /* Fluid page padding — grows with screen width */
+  --page-pad: clamp(1rem, 4vw, 3rem);
+
+  /* ----- Radius ----- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-2xl: 32px;
+  --r-pill: 999px;
+
+  /* ----- Shadows ----- */
+  --shadow-sm: 0 1px 3px rgba(26, 23, 20, 0.05);
+  --shadow-md: 0 4px 16px rgba(26, 23, 20, 0.06);
+  --shadow-lg: 0 16px 40px rgba(26, 23, 20, 0.08);
+  --shadow-xl: 0 30px 60px rgba(26, 23, 20, 0.12);
+  --shadow-product: 0 30px 50px -10px rgba(26, 23, 20, 0.18);
+
+  /* ----- Motion ----- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --d-fast: 160ms;
+  --d-base: 280ms;
+  --d-slow: 480ms;
+  --d-page: 480ms;
+
+  /* ----- Layout ----- */
+  --content-max: 1440px;        /* big readable content area */
+  --content-max-narrow: 720px;   /* for prose-like content */
+  --phone-max: 540px;            /* mobile-style single-column */
+  --catalog-max: 1440px;         /* product grids */
+
+  /* ----- z-index ----- */
+  --z-bg: 0;
+  --z-content: 10;
+  --z-nav: 50;
+  --z-overlay: 100;
+  --z-modal: 1000;
+  --z-toast: 10000;
+}
+
+/* ============================================================
+   Base reset — only what's truly needed
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+img, video, model-viewer { max-width: 100%; display: block; }
+button { font-family: inherit; }
+
+/* Editorial helpers */
+.serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
+.t-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.text-dim { color: var(--ink-dim); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-warn { color: var(--warn); }

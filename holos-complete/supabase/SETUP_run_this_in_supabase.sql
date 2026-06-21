@@ -1,0 +1,257 @@
+-- ============================================================
+-- HOLOS — Database Schema (Supabase / PostgreSQL)
+-- Paste this whole file into Supabase SQL Editor and run it.
+-- It creates all tables, security policies, and demo data.
+-- ============================================================
+
+-- ---------- CATEGORIES (top level) ----------
+create table if not exists categories (
+  id          text primary key,        -- 'fashion', 'home', etc.
+  label       text not null,
+  icon        text,
+  sort_order  int default 0,
+  created_at  timestamptz default now()
+);
+
+-- ---------- SUBCATEGORIES (with field schema) ----------
+create table if not exists subcategories (
+  id           text primary key,       -- 'mens-shoes', 'carpets', etc.
+  category_id  text references categories(id) on delete cascade,
+  label        text not null,
+  try_on       text,                   -- 'foot','face','room', etc. (nullable)
+  fields       jsonb not null default '[]',  -- the field schema array
+  approved     boolean default true,
+  created_by   text default 'admin',   -- 'admin' or a shop id
+  created_at   timestamptz default now()
+);
+
+-- ---------- SHOPS ----------
+create table if not exists shops (
+  id             text primary key,      -- 'bilal-footwear'
+  name           text not null,
+  tagline        text,
+  owner          text,
+  email          text,
+  phone          text,
+  city           text,
+  plan           text default 'starter',
+  categories     text[] default '{}',
+  accent         text default '#2D4A47',
+  cover_gradient text,
+  banner         text,                  -- storage path/url, nullable
+  rating         numeric default 0,
+  review_count   int default 0,
+  followers      int default 0,
+  verified       boolean default false,
+  status         text default 'active', -- 'active','suspended'
+  auto_live      boolean default false,
+  -- credentials (demo only; real auth comes in Phase D)
+  shop_login_id  text,
+  shop_password  text,
+  joined_months  int default 0,
+  -- stats
+  revenue        bigint default 0,
+  orders         int default 0,
+  refunds        int default 0,
+  scans_today    int default 0,
+  scans_month    int default 0,
+  views          int default 0,
+  created_at     timestamptz default now()
+);
+
+-- ---------- SHOP REQUESTS (pending approval) ----------
+create table if not exists shop_requests (
+  id            text primary key,
+  name          text not null,
+  owner         text,
+  email         text,
+  phone         text,
+  city          text,
+  category      text,
+  docs          text[] default '{}',
+  status        text default 'pending', -- 'pending','review'
+  requested_at  text,
+  created_at    timestamptz default now()
+);
+
+-- ---------- SUBCATEGORY REQUESTS ----------
+create table if not exists subcat_requests (
+  id                 text primary key,
+  shop_id            text,
+  shop_name          text,
+  proposed_name      text not null,
+  suggested_category text,
+  reason             text,
+  status             text default 'pending',
+  requested_at       text,
+  created_at         timestamptz default now()
+);
+
+-- ---------- PRODUCTS ----------
+create table if not exists products (
+  id            text primary key,       -- 'p-shoe-001'
+  shop_id       text references shops(id) on delete cascade,
+  category      text,
+  subcategory   text,
+  name          text not null,
+  subtitle      text,
+  price         bigint not null,
+  sale_price    bigint default 0,
+  currency      text default 'PKR',
+  offer         jsonb,                  -- { type, label, endsIn } or null
+  options       jsonb default '{}',     -- schema-driven values incl colors/sizes
+  default_color int default 0,
+  default_size  int default 0,
+  description   text,
+  photos        int default 0,
+  rating        numeric default 0,
+  review_count  int default 0,
+  best_seller   boolean default false,
+  status        text default 'pending_approval', -- live/pending_approval/photo_review/draft
+  photo_issue   text,
+  -- model
+  model_glb     text,
+  model_usdz    text,
+  model_poster  text,
+  real_size_cm  numeric default 0,
+  try_on        text,
+  created_at    timestamptz default now()
+);
+
+-- ---------- REVIEWS (with anti-fraud weight) ----------
+create table if not exists reviews (
+  id          text primary key,
+  product_id  text references products(id) on delete cascade,
+  account_id  text,                     -- who wrote it (for anti-fraud)
+  author      text,
+  stars       int not null check (stars between 1 and 5),
+  text        text,
+  weight      numeric default 1.0,
+  date        text,
+  created_at  timestamptz default now()
+);
+
+-- ---------- ADMIN SETTINGS (single row) ----------
+create table if not exists admin_settings (
+  id           int primary key default 1,
+  mrr          int default 12840,
+  new_signups  int default 12,
+  created_at   timestamptz default now()
+);
+
+-- ============================================================
+-- ROW LEVEL SECURITY
+-- For now (no real auth yet) we allow public read + write so the
+-- prototype works. We TIGHTEN this in Phase D when auth lands.
+-- ============================================================
+alter table categories      enable row level security;
+alter table subcategories   enable row level security;
+alter table shops           enable row level security;
+alter table shop_requests   enable row level security;
+alter table subcat_requests enable row level security;
+alter table products        enable row level security;
+alter table reviews         enable row level security;
+alter table admin_settings  enable row level security;
+
+-- Open policies (prototype phase). Replaced with strict rules in Phase D.
+do $$
+declare t text;
+begin
+  foreach t in array array['categories','subcategories','shops','shop_requests','subcat_requests','products','reviews','admin_settings']
+  loop
+    execute format('drop policy if exists "public_all" on %I;', t);
+    execute format('create policy "public_all" on %I for all using (true) with check (true);', t);
+  end loop;
+end $$;
+
+-- ============================================================
+-- DONE. Demo data is inserted by a separate seed file.
+-- ============================================================
+
+-- ============================================================
+-- SEED DATA (demo content so the app looks populated)
+-- ============================================================
+-- HOLOS seed data (auto-generated)
+
+-- categories
+insert into categories (id,label,icon,sort_order) values ('fashion','Fashion','👕',0) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('accessories','Accessories','⌚',1) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('electronics','Electronics','🔊',2) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('home','Home & Decor','🛋',3) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('kitchen','Kitchen','🍳',4) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('beauty','Beauty','💄',5) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('grocery','Grocery & Food','🍽',6) on conflict (id) do nothing;
+insert into categories (id,label,icon,sort_order) values ('toys','Toys & Gifts','🧸',7) on conflict (id) do nothing;
+
+-- subcategories
+insert into subcategories (id,category_id,label,try_on,fields) values ('mens-shoes','fashion','Men''s Shoes','foot','[{"key":"gender","label":"Gender","type":"select","options":["Men","Unisex"],"required":true},{"key":"sizes","label":"Available sizes","type":"sizes","options":["UK 5","UK 6","UK 7","UK 8","UK 9","UK 10","UK 11","UK 12"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"material","label":"Material","type":"select","options":["Leather","Suede","Canvas","Synthetic","Mesh"],"required":true},{"key":"style","label":"Style","type":"select","options":["Sneaker","Oxford","Loafer","Boot","Sandal","Formal"]},{"key":"sole","label":"Sole type","type":"select","options":["Rubber","Leather","EVA","TPU"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('womens-shoes','fashion','Women''s Shoes','foot','[{"key":"gender","label":"Gender","type":"select","options":["Women","Unisex"],"required":true},{"key":"sizes","label":"Available sizes","type":"sizes","options":["UK 5","UK 6","UK 7","UK 8","UK 9","UK 10","UK 11","UK 12"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"heelHeight","label":"Heel height","type":"select","options":["Flat","Low (2-4cm)","Mid (5-7cm)","High (8cm+)"]},{"key":"material","label":"Material","type":"select","options":["Leather","Suede","Canvas","Synthetic"],"required":true},{"key":"style","label":"Style","type":"select","options":["Heels","Flats","Sneaker","Sandal","Boot","Wedge"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('mens-clothing','fashion','Men''s Clothing','body-ai','[{"key":"sizes","label":"Available sizes","type":"sizes","options":["XS","S","M","L","XL","XXL","3XL"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"garmentType","label":"Type","type":"select","options":["Shirt","T-Shirt","Kurta","Trousers","Jeans","Jacket","Suit"],"required":true},{"key":"fabric","label":"Fabric","type":"select","options":["Cotton","Linen","Polyester","Wool","Silk","Denim","Blend"],"required":true},{"key":"fit","label":"Fit","type":"select","options":["Slim","Regular","Relaxed","Oversized"]},{"key":"sleeve","label":"Sleeve","type":"select","options":["Full","Half","Sleeveless"]},{"key":"occasion","label":"Occasion","type":"multiselect","options":["Casual","Formal","Party","Wedding","Office"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('womens-clothing','fashion','Women''s Clothing','body-ai','[{"key":"sizes","label":"Available sizes","type":"sizes","options":["XS","S","M","L","XL","XXL","3XL"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"garmentType","label":"Type","type":"select","options":["Kurta","Lehenga","Saree","Dress","Top","Trousers","Abaya","Gown"],"required":true},{"key":"fabric","label":"Fabric","type":"select","options":["Cotton","Silk","Chiffon","Lawn","Georgette","Velvet","Linen"],"required":true},{"key":"work","label":"Embellishment","type":"multiselect","options":["Plain","Embroidered","Printed","Sequins","Gota","Mirror work"]},{"key":"occasion","label":"Occasion","type":"multiselect","options":["Casual","Formal","Party","Bridal","Festive","Office"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('kids-clothing','fashion','Kids'' Clothing','body-ai','[{"key":"ageGroup","label":"Age group","type":"sizes","options":["2-3y","4-5y","6-7y","8-9y","10-11y","12-13y"],"required":true},{"key":"gender","label":"Gender","type":"select","options":["Boys","Girls","Unisex"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"garmentType","label":"Type","type":"select","options":["Shirt","Frock","Trousers","Suit","Sleepwear"],"required":true},{"key":"fabric","label":"Fabric","type":"select","options":["Cotton","Fleece","Polyester","Blend"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('bags','fashion','Bags','room','[{"key":"bagType","label":"Type","type":"select","options":["Tote","Backpack","Clutch","Briefcase","Crossbody","Handbag","Wallet"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"material","label":"Material","type":"select","options":["Leather","Faux Leather","Canvas","Nylon","Suede"],"required":true},{"key":"gender","label":"For","type":"select","options":["Men","Women","Unisex","Boys","Girls"]},{"key":"compartments","label":"Compartments","type":"number","unit":"count"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('watches','accessories','Watches','wrist','[{"key":"gender","label":"For","type":"select","options":["Men","Women","Unisex","Boys","Girls"],"required":true},{"key":"colors","label":"Strap colors","type":"colors","required":true},{"key":"caseSize","label":"Case size","type":"select","options":["36mm","38mm","40mm","42mm","44mm","46mm"],"required":true},{"key":"movement","label":"Movement","type":"select","options":["Automatic","Quartz","Mechanical","Smart"],"required":true},{"key":"strap","label":"Strap material","type":"select","options":["Leather","Steel","Silicone","Fabric"]},{"key":"waterResist","label":"Water resistance","type":"select","options":["None","30m","50m","100m","200m"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('eyewear','accessories','Eyewear','face','[{"key":"gender","label":"For","type":"select","options":["Men","Women","Unisex","Boys","Girls"],"required":true},{"key":"colors","label":"Frame colors","type":"colors","required":true},{"key":"frameShape","label":"Frame shape","type":"select","options":["Aviator","Round","Square","Cat-eye","Rectangle","Wayfarer"],"required":true},{"key":"lensType","label":"Lens","type":"select","options":["Sunglasses","Prescription-ready","Blue-light","Polarized"],"required":true},{"key":"frameMaterial","label":"Frame material","type":"select","options":["Metal","Acetate","TR90","Titanium"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('jewelry','accessories','Jewelry','finger','[{"key":"jewelryType","label":"Type","type":"select","options":["Ring","Necklace","Earrings","Bracelet","Bangle","Pendant"],"required":true},{"key":"colors","label":"Metal tone","type":"colors","required":true},{"key":"metal","label":"Metal","type":"select","options":["Gold","Silver","Platinum","Rose Gold","Artificial"],"required":true},{"key":"stone","label":"Stone","type":"select","options":["None","Diamond","Cubic Zirconia","Pearl","Ruby","Emerald"]},{"key":"sizes","label":"Ring sizes (if ring)","type":"multiselect","options":["Adjustable","6","7","8","9","10","11","12"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('laptops','electronics','Laptops','room','[{"key":"brand","label":"Brand","type":"text","required":true},{"key":"processor","label":"Processor","type":"select","options":["Intel i3","Intel i5","Intel i7","Intel i9","AMD Ryzen 5","AMD Ryzen 7","Apple M2","Apple M3"],"required":true},{"key":"ram","label":"RAM","type":"select","options":["8GB","16GB","32GB","64GB"],"required":true},{"key":"storage","label":"Storage","type":"select","options":["256GB SSD","512GB SSD","1TB SSD","2TB SSD"],"required":true},{"key":"screenSize","label":"Screen","type":"select","options":["13\"","14\"","15.6\"","16\"","17\""],"required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"warranty","label":"Warranty","type":"select","options":["No warranty","6 months","1 year","2 years"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('phones','electronics','Phones','room','[{"key":"brand","label":"Brand","type":"text","required":true},{"key":"storage","label":"Storage","type":"select","options":["64GB","128GB","256GB","512GB","1TB"],"required":true},{"key":"ram","label":"RAM","type":"select","options":["4GB","6GB","8GB","12GB","16GB"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"screenSize","label":"Screen","type":"number","unit":"inches"},{"key":"condition","label":"Condition","type":"select","options":["New","Open box","Refurbished"],"required":true},{"key":"warranty","label":"Warranty","type":"select","options":["No warranty","6 months","1 year"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('audio','electronics','Audio','room','[{"key":"audioType","label":"Type","type":"select","options":["Headphones","Earbuds","Speaker","Soundbar"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"connectivity","label":"Connectivity","type":"multiselect","options":["Bluetooth","Wired","USB-C","AUX"],"required":true},{"key":"battery","label":"Battery life","type":"number","unit":"hours"},{"key":"anc","label":"Noise cancellation","type":"boolean"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('furniture','home','Furniture','room','[{"key":"furnitureType","label":"Type","type":"select","options":["Chair","Sofa","Table","Bed","Shelf","Cabinet","Desk"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"material","label":"Material","type":"select","options":["Solid wood","Engineered wood","Metal","Rattan","Upholstered"],"required":true},{"key":"dimensions","label":"Dimensions (W×D×H cm)","type":"text","required":true},{"key":"assembly","label":"Assembly required","type":"boolean"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('carpets','home','Carpets & Rugs','room','[{"key":"dimensions","label":"Dimensions (cm)","type":"text","required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"material","label":"Material","type":"select","options":["Wool","Silk","Cotton","Jute","Synthetic","Blend"],"required":true},{"key":"pileHeight","label":"Pile height","type":"select","options":["Low","Medium","High","Shag"]},{"key":"shape","label":"Shape","type":"select","options":["Rectangle","Round","Runner","Square","Oval"],"required":true},{"key":"weave","label":"Weave","type":"select","options":["Hand-knotted","Hand-tufted","Machine-made","Flatweave"]},{"key":"origin","label":"Origin","type":"text"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('lighting','home','Lighting','room','[{"key":"lightType","label":"Type","type":"select","options":["Pendant","Table lamp","Floor lamp","Chandelier","Wall sconce"],"required":true},{"key":"colors","label":"Colors","type":"colors","required":true},{"key":"material","label":"Material","type":"select","options":["Brass","Glass","Steel","Wood","Fabric shade"]},{"key":"bulbType","label":"Bulb","type":"select","options":["E27","E14","LED integrated","GU10"]},{"key":"dimmable","label":"Dimmable","type":"boolean"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('wall-decor','home','Wall Decor','wall','[{"key":"decorType","label":"Type","type":"select","options":["Framed print","Canvas","Mirror","Clock","Tapestry"],"required":true},{"key":"dimensions","label":"Dimensions (cm)","type":"text","required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"frameMaterial","label":"Frame","type":"select","options":["Wood","Metal","Frameless","Plastic"]},{"key":"orientation","label":"Orientation","type":"select","options":["Portrait","Landscape","Square"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('cookware','kitchen','Cookware','room','[{"key":"cookwareType","label":"Type","type":"select","options":["Pot","Pan","Pressure cooker","Wok","Baking set","Knife set"],"required":true},{"key":"material","label":"Material","type":"select","options":["Stainless steel","Non-stick","Cast iron","Ceramic","Aluminium"],"required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"pieces","label":"Pieces in set","type":"number","unit":"pcs"},{"key":"inductionReady","label":"Induction-ready","type":"boolean"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('appliances','kitchen','Appliances','room','[{"key":"applianceType","label":"Type","type":"select","options":["Blender","Microwave","Air fryer","Kettle","Toaster","Coffee maker"],"required":true},{"key":"brand","label":"Brand","type":"text","required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"power","label":"Power","type":"number","unit":"watts"},{"key":"capacity","label":"Capacity","type":"text"},{"key":"warranty","label":"Warranty","type":"select","options":["6 months","1 year","2 years"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('tableware','kitchen','Tableware','room','[{"key":"tablewareType","label":"Type","type":"select","options":["Dinner set","Cups & mugs","Glassware","Cutlery","Serving dishes"],"required":true},{"key":"material","label":"Material","type":"select","options":["Ceramic","Porcelain","Glass","Melamine","Bone china"],"required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"pieces","label":"Pieces","type":"number","unit":"pcs"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('makeup','beauty','Makeup','face','[{"key":"makeupType","label":"Type","type":"select","options":["Lipstick","Foundation","Eyeshadow","Mascara","Blush","Concealer"],"required":true},{"key":"shades","label":"Available shades","type":"colors","required":true},{"key":"finish","label":"Finish","type":"select","options":["Matte","Glossy","Satin","Shimmer"]},{"key":"skinType","label":"Skin type","type":"multiselect","options":["All","Oily","Dry","Combination","Sensitive"]},{"key":"volume","label":"Volume/Weight","type":"text"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('fragrance','beauty','Fragrance',null,'[{"key":"gender","label":"For","type":"select","options":["Men","Women","Unisex","Boys","Girls"],"required":true},{"key":"scentFamily","label":"Scent family","type":"select","options":["Floral","Woody","Oriental","Fresh","Citrus","Musky"],"required":true},{"key":"volume","label":"Volume","type":"select","options":["30ml","50ml","75ml","100ml","200ml"],"required":true},{"key":"concentration","label":"Type","type":"select","options":["Eau de Parfum","Eau de Toilette","Attar","Body mist"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('skincare','beauty','Skincare',null,'[{"key":"skincareType","label":"Type","type":"select","options":["Cleanser","Moisturizer","Serum","Sunscreen","Mask","Toner"],"required":true},{"key":"skinType","label":"Skin type","type":"multiselect","options":["All","Oily","Dry","Combination","Sensitive","Acne-prone"],"required":true},{"key":"volume","label":"Volume","type":"text","required":true},{"key":"concern","label":"Targets","type":"multiselect","options":["Acne","Aging","Brightening","Hydration","Pigmentation"]}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('packaged-food','grocery','Packaged Food',null,'[{"key":"foodType","label":"Type","type":"select","options":["Snacks","Beverages","Spices","Rice & Grains","Oil & Ghee","Sweets"],"required":true},{"key":"weight","label":"Weight/Volume","type":"text","required":true},{"key":"dietary","label":"Dietary","type":"multiselect","options":["Halal","Vegetarian","Vegan","Gluten-free","Sugar-free"]},{"key":"expiry","label":"Shelf life","type":"text"},{"key":"ingredients","label":"Ingredients","type":"textarea"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('fresh-produce','grocery','Fresh Produce',null,'[{"key":"produceType","label":"Type","type":"select","options":["Fruits","Vegetables","Meat","Dairy","Bakery"],"required":true},{"key":"weight","label":"Sold per","type":"select","options":["Per kg","Per piece","Per dozen","Per bundle"],"required":true},{"key":"organic","label":"Organic","type":"boolean"},{"key":"origin","label":"Origin","type":"text"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('toys-games','toys','Toys & Games','room','[{"key":"toyType","label":"Type","type":"select","options":["Soft toy","Building blocks","Board game","Action figure","Educational","Remote control"],"required":true},{"key":"ageRange","label":"Age range","type":"select","options":["0-2y","3-5y","6-8y","9-12y","12y+"],"required":true},{"key":"colors","label":"Colors","type":"colors"},{"key":"material","label":"Material","type":"select","options":["Plastic","Wood","Plush","Metal"]},{"key":"batteries","label":"Batteries required","type":"boolean"}]'::jsonb) on conflict (id) do nothing;
+insert into subcategories (id,category_id,label,try_on,fields) values ('gift-cards','toys','Gift Cards',null,'[{"key":"denomination","label":"Value options","type":"multiselect","options":["Rs.500","Rs.1000","Rs.2500","Rs.5000","Rs.10000"],"required":true},{"key":"delivery","label":"Delivery","type":"select","options":["Digital (email)","Physical card"],"required":true},{"key":"validity","label":"Validity","type":"select","options":["6 months","1 year","No expiry"]}]'::jsonb) on conflict (id) do nothing;
+
+-- shops
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('bilal-footwear','Bilal Footwear','Handcrafted shoes since 1998','Bilal Ahmed','bilal@example.com','923001234567','Lahore','growth','{"fashion"}','#3D2914','linear-gradient(135deg, #2A1F15 0%, #5A3F2A 100%)',null,4.8,247,1840,true,'active',false,'SHOP-BF-4471','bilal@4471',7,1284000,342,8,47,1284,18400) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('lahore-optics','Lahore Optics','Vision meets style','Hassan Ali','hassan@example.com','923011234567','Lahore','pro','{"accessories"}','#2D4A47','linear-gradient(135deg, #1B262C 0%, #2D4A47 100%)',null,4.9,412,3210,true,'active',true,'SHOP-LO-8832','hassan@8832',11,2840000,612,12,89,2940,41200) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('khan-watches','Khan Watches','Timepieces that tell a story','Imran Khan','imran@example.com','923021234567','Lahore','pro','{"accessories"}','#5C2E26','linear-gradient(135deg, #2C1814 0%, #5C2E26 100%)',null,4.7,189,920,true,'active',false,'SHOP-KW-2203','imran@2203',5,3680000,142,3,34,890,12400) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('saira-bridal','Saira Bridal','Wear your story','Saira Mahmood','saira@example.com','923031234567','Karachi','growth','{"fashion"}','#7C3B5B','linear-gradient(135deg, #4A1B36 0%, #7C3B5B 100%)',null,4.9,624,8120,true,'active',false,'SHOP-SB-9100','saira@9100',14,5120000,428,18,124,4200,68000) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('karachi-living','Karachi Living','Furniture for modern homes','Ayesha Khan','ayesha@example.com','923041234567','Karachi','growth','{"home"}','#3D2914','linear-gradient(135deg, #2C1F14 0%, #6B4E2E 100%)',null,4.6,156,1240,false,'active',false,'SHOP-KL-5567','ayesha@5567',3,980000,87,4,28,640,9200) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('multan-crafts','Multan Crafts','Decor with a soul','Fatima Sheikh','fatima@example.com','923051234567','Multan','starter','{"home"}','#3D5A4A','linear-gradient(135deg, #1B3322 0%, #3D5A4A 100%)',null,4.7,87,540,false,'active',false,'SHOP-MC-3344','fatima@3344',2,420000,54,2,18,380,5400) on conflict (id) do nothing;
+insert into shops (id,name,tagline,owner,email,phone,city,plan,categories,accent,cover_gradient,banner,rating,review_count,followers,verified,status,auto_live,shop_login_id,shop_password,joined_months,revenue,orders,refunds,scans_today,scans_month,views) values ('islamabad-tech','Islamabad Tech','Premium electronics & audio','Usman Riaz','usman@example.com','923061234567','Islamabad','pro','{"electronics"}','#1F2933','linear-gradient(135deg, #0F1419 0%, #1F2933 100%)',null,4.8,203,2100,true,'active',true,'SHOP-IT-7788','usman@7788',8,6240000,312,9,67,1840,28000) on conflict (id) do nothing;
+
+-- shop_requests
+insert into shop_requests (id,name,owner,email,phone,city,category,docs,status,requested_at) values ('req-001','Quetta Carpets','Abdul Rahman','abdul@example.com','923071234567','Quetta','home','{"CNIC","Business permit","Sample products"}','pending','2 hours ago') on conflict (id) do nothing;
+insert into shop_requests (id,name,owner,email,phone,city,category,docs,status,requested_at) values ('req-002','Faisalabad Fabrics','Nadia Tariq','nadia@example.com','923081234567','Faisalabad','fashion','{"CNIC","Tax certificate"}','pending','5 hours ago') on conflict (id) do nothing;
+insert into shop_requests (id,name,owner,email,phone,city,category,docs,status,requested_at) values ('req-003','Peshawar Pottery','Khalid Mahmood','khalid@example.com','923091234567','Peshawar','home','{"CNIC","Business permit","Sample products","Bank account"}','review','1 day ago') on conflict (id) do nothing;
+
+-- subcat_requests
+insert into subcat_requests (id,shop_id,shop_name,proposed_name,suggested_category,reason,status,requested_at) values ('sreq-001','multan-crafts','Multan Crafts','Handwoven Baskets','home','I sell traditional cane baskets, no matching subcategory found.','pending','3 hours ago') on conflict (id) do nothing;
+insert into subcat_requests (id,shop_id,shop_name,proposed_name,suggested_category,reason,status,requested_at) values ('sreq-002','islamabad-tech','Islamabad Tech','Smart Home Devices','electronics','Smart bulbs, plugs, sensors — need a dedicated section.','pending','1 day ago') on conflict (id) do nothing;
+
+-- products
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-shoe-001','bilal-footwear','fashion','mens-shoes','Suede Oxford','Handcrafted leather',14500,11900,'PKR','{"type":"discount","label":"18% OFF","endsIn":"3 days"}'::jsonb,'{"gender":"Men","sizes":["UK 7","UK 8","UK 9","UK 10"],"colors":[{"hex":"#A67B5B","label":"Tan"},{"hex":"#1a1a1a","label":"Black"},{"hex":"#5c1f1f","label":"Oxblood"}],"material":"Suede","style":"Oxford","sole":"Leather"}'::jsonb,0,1,'Hand-stitched suede oxford with soft leather lining. Crafted in Lahore by master cobblers with over 25 years of experience.',5,4.8,23,true,'live',null,'assets/models/shoe-oxford/model.glb','assets/models/shoe-oxford/model.usdz','assets/models/shoe-oxford/poster.jpg',30,'foot') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-shoe-002','bilal-footwear','fashion','mens-shoes','High-Top Sneaker','Canvas · Unisex',9500,8200,'PKR','{"type":"discount","label":"14% OFF","endsIn":"5 days"}'::jsonb,'{"gender":"Unisex","sizes":["UK 6","UK 7","UK 8","UK 9","UK 10"],"colors":[{"hex":"#F4F2EE","label":"White"},{"hex":"#C13438","label":"Red"},{"hex":"#1B2A4E","label":"Navy"}],"material":"Canvas","style":"Sneaker","sole":"Rubber"}'::jsonb,0,2,'Classic canvas high-top. Reinforced rubber sole. Vegan materials throughout.',4,4.6,12,false,'live',null,'assets/models/shoe-hightop/model.glb','assets/models/shoe-hightop/model.usdz','assets/models/shoe-hightop/poster.jpg',30,'foot') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-glass-001','lahore-optics','accessories','eyewear','Aviator Classic','Polarized · Unisex',8500,7200,'PKR','{"type":"discount","label":"15% OFF","endsIn":"2 days"}'::jsonb,'{"gender":"Unisex","colors":[{"hex":"#C9A961","label":"Gold"},{"hex":"#C0C0C0","label":"Silver"}],"frameShape":"Aviator","lensType":"Polarized","frameMaterial":"Metal"}'::jsonb,0,0,'Timeless aviator silhouette with UV400 polarized lenses. Italian-made frame.',6,4.9,47,true,'live',null,'assets/models/glasses-aviator/model.glb','assets/models/glasses-aviator/model.usdz','assets/models/glasses-aviator/poster.jpg',14,'face') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-glass-002','lahore-optics','accessories','eyewear','Square Tortoise','Acetate · Women',6200,0,'PKR',null,'{"gender":"Women","colors":[{"hex":"#704228","label":"Tortoise"},{"hex":"#1a1a1a","label":"Black"}],"frameShape":"Square","lensType":"Blue-light","frameMaterial":"Acetate"}'::jsonb,0,0,'Bold square frames in handmade acetate with anti-glare coating.',4,4.7,28,false,'live',null,'assets/models/glasses-square/model.glb','assets/models/glasses-square/model.usdz','assets/models/glasses-square/poster.jpg',14,'face') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-watch-001','khan-watches','accessories','watches','Pilot Chronograph','Automatic · Men',38000,32500,'PKR','{"type":"discount","label":"14% OFF","endsIn":"6 days"}'::jsonb,'{"gender":"Men","colors":[{"hex":"#1a1a1a","label":"Black"},{"hex":"#5C3A21","label":"Brown"}],"caseSize":"42mm","movement":"Automatic","strap":"Leather","waterResist":"100m"}'::jsonb,0,0,'Swiss-style chronograph with genuine leather strap. 100m water resistant.',5,4.7,18,true,'live',null,'assets/models/watch-pilot/model.glb','assets/models/watch-pilot/model.usdz','assets/models/watch-pilot/poster.jpg',4,'wrist') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-cloth-001','saira-bridal','fashion','womens-clothing','Embroidered Kurta','Cotton silk · Women',8500,7200,'PKR','{"type":"discount","label":"15% OFF","endsIn":"4 days"}'::jsonb,'{"sizes":["XS","S","M","L","XL"],"colors":[{"hex":"#7C2D5B","label":"Maroon"},{"hex":"#2D7C7C","label":"Teal"},{"hex":"#F4E8D0","label":"Cream"}],"garmentType":"Kurta","fabric":"Silk","work":["Embroidered"],"occasion":["Festive","Party"]}'::jsonb,0,2,'Hand-embroidered cotton silk kurta showcasing traditional Pakistani craftsmanship.',7,4.9,64,true,'live',null,'assets/models/kurta/model.glb','assets/models/kurta/model.usdz','assets/models/kurta/poster.jpg',90,'body-ai') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-cloth-002','saira-bridal','fashion','womens-clothing','Bridal Lehenga','Hand-worked · Women',85000,72000,'PKR','{"type":"discount","label":"15% OFF","endsIn":"7 days"}'::jsonb,'{"sizes":["S","M","L"],"colors":[{"hex":"#A04545","label":"Red & Gold"},{"hex":"#C99694","label":"Pink & Silver"}],"garmentType":"Lehenga","fabric":"Velvet","work":["Gota","Sequins"],"occasion":["Bridal"]}'::jsonb,0,1,'Show-stopping bridal lehenga with hand-stitched gota work. Includes dupatta and blouse.',8,5,12,false,'live',null,'assets/models/lehenga/model.glb','assets/models/lehenga/model.usdz','assets/models/lehenga/poster.jpg',100,'body-ai') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-furn-001','karachi-living','home','furniture','Lounge Chair','Walnut & linen',48000,42500,'PKR','{"type":"discount","label":"11% OFF","endsIn":"10 days"}'::jsonb,'{"furnitureType":"Chair","colors":[{"hex":"#E8DCC4","label":"Natural linen"},{"hex":"#4A5A3A","label":"Olive green"}],"material":"Solid wood","dimensions":"70 × 75 × 85 cm","assembly":true}'::jsonb,0,0,'Mid-century lounge chair with solid walnut frame and removable linen cushions.',6,4.8,14,true,'live',null,'assets/models/chair-lounge/model.glb','assets/models/chair-lounge/model.usdz','assets/models/chair-lounge/poster.jpg',85,'room') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-carpet-001','multan-crafts','home','carpets','Persian Wool Rug','Hand-knotted',32000,0,'PKR',null,'{"dimensions":"200 × 300 cm","colors":[{"hex":"#A04545","label":"Crimson"},{"hex":"#2D4A47","label":"Forest"}],"material":"Wool","pileHeight":"Medium","shape":"Rectangle","weave":"Hand-knotted","origin":"Multan"}'::jsonb,0,0,'Hand-knotted wool rug with traditional Multani patterns. Each piece takes 3 months to weave.',5,4.9,9,true,'live',null,'assets/models/carpet/model.glb','assets/models/carpet/model.usdz','assets/models/carpet/poster.jpg',300,'room') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-lamp-001','multan-crafts','home','lighting','Pendant Lamp','Brass & glass',14500,0,'PKR',null,'{"lightType":"Pendant","colors":[{"hex":"#C9A961","label":"Brass"}],"material":"Brass","bulbType":"E27","dimmable":true}'::jsonb,0,0,'Hand-blown glass pendant lamp with brushed brass fitting.',4,4.7,8,false,'live',null,'assets/models/lamp-pendant/model.glb','assets/models/lamp-pendant/model.usdz','assets/models/lamp-pendant/poster.jpg',35,'room') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-audio-001','islamabad-tech','electronics','audio','Over-Ear Headphones','Wireless · ANC',18500,16000,'PKR','{"type":"discount","label":"13% OFF","endsIn":"3 days"}'::jsonb,'{"audioType":"Headphones","colors":[{"hex":"#1a1a1a","label":"Matte black"},{"hex":"#C0C0C0","label":"Silver"}],"connectivity":["Bluetooth","USB-C"],"battery":30,"anc":true}'::jsonb,0,0,'Active noise cancellation, 30-hour battery, premium build quality.',6,4.8,41,true,'live',null,'assets/models/headphones/model.glb','assets/models/headphones/model.usdz','assets/models/headphones/poster.jpg',20,'room') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-laptop-001','islamabad-tech','electronics','laptops','UltraBook Pro 14','M3 · 16GB',285000,0,'PKR',null,'{"brand":"Apple","processor":"Apple M3","ram":"16GB","storage":"512GB SSD","screenSize":"14\"","colors":[{"hex":"#3D4A52","label":"Space Grey"},{"hex":"#E8E8E8","label":"Silver"}],"warranty":"1 year"}'::jsonb,0,0,'Flagship 14-inch laptop with M3 chip, 16GB unified memory, all-day battery.',5,4.9,27,true,'live',null,'assets/models/laptop/model.glb','assets/models/laptop/model.usdz','assets/models/laptop/poster.jpg',31,'room') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-pending-001','bilal-footwear','fashion','mens-shoes','Chelsea Boot','Leather · Men',17500,0,'PKR',null,'{"gender":"Men","sizes":["UK 8","UK 9","UK 10"],"colors":[{"hex":"#3A2317","label":"Dark brown"}],"material":"Leather","style":"Boot","sole":"Rubber"}'::jsonb,0,0,'Classic Chelsea boot in full-grain leather.',5,0,0,false,'pending_approval',null,'assets/models/shoe-chelsea/model.glb','','',0,'foot') on conflict (id) do nothing;
+insert into products (id,shop_id,category,subcategory,name,subtitle,price,sale_price,currency,offer,options,default_color,default_size,description,photos,rating,review_count,best_seller,status,photo_issue,model_glb,model_usdz,model_poster,real_size_cm,try_on) values ('p-photo-001','multan-crafts','home','wall-decor','Abstract Canvas','Framed print',6800,0,'PKR',null,'{"decorType":"Canvas","dimensions":"60 × 90 cm","colors":[{"hex":"#1a1a1a","label":"Monochrome"}],"frameMaterial":"Wood","orientation":"Portrait"}'::jsonb,0,0,'Limited-edition giclée print on canvas.',3,0,0,false,'photo_review','Photo 2 and 3 are blurry — need re-shoot for 3D model generation.','assets/models/wall-art/model.glb','','',0,'wall') on conflict (id) do nothing;
+
+-- reviews
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r1','p-shoe-001','acc_1','Ahmed K.',5,'Excellent quality, fits perfectly.',1,'1 week ago') on conflict (id) do nothing;
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r2','p-shoe-001','acc_2','Sara M.',5,'Bought for my husband, he loves them.',1,'2 weeks ago') on conflict (id) do nothing;
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r3','p-shoe-001','acc_3','Bilal R.',4,'Good but slightly tight.',1,'3 weeks ago') on conflict (id) do nothing;
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r4','p-shoe-001','acc_2','Sara M.',5,'Ordering another pair!',0.3,'3 weeks ago') on conflict (id) do nothing;
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r5','p-glass-001','acc_4','Hassan T.',5,'Perfect for driving, great polarization.',1,'4 days ago') on conflict (id) do nothing;
+insert into reviews (id,product_id,account_id,author,stars,text,weight,date) values ('r6','p-glass-001','acc_5','Zara A.',5,'Stylish and lightweight.',1,'1 week ago') on conflict (id) do nothing;
+
+-- admin_settings
+insert into admin_settings (id,mrr,new_signups) values (1,12840,12) on conflict (id) do nothing;

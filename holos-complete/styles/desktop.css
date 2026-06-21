@@ -1,0 +1,141 @@
+/* ============================================================
+   HOLOS — Desktop Responsive Layer
+   On screens wider than 768px, the layout adapts:
+   - Content gets wider (up to 1200px)
+   - Product grids go 3-4 columns
+   - The marketplace gets a proper wide hero
+   - Cards get more breathing room
+   On phone-sized screens, this file has zero effect.
+   ============================================================ */
+
+@media (min-width: 768px) {
+  /* Widen the content containers */
+  .mp-main, .sp-main, .pp-main, .sh-main, .ap2-main,
+  .ah-main, .asd-main, .aq-main, .ssu-main, .ss2-main {
+    max-width: 960px !important;
+  }
+
+  /* Product grids: 3 columns on tablet, 4 on desktop */
+  .mp-products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .sp-products {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Category icons: more space, bigger touch targets */
+  .mp-cats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .mp-cat-icon {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  /* Shop cards in horizontal scroll → grid */
+  .mp-shops {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    overflow-x: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .mp-shop {
+    max-width: none !important;
+    flex: none !important;
+  }
+
+  /* Product page: side-by-side hero + info */
+  .pp {
+    padding-bottom: 100px;
+  }
+  .pp-main {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-6);
+    align-items: start;
+    max-width: 1100px !important;
+    padding: 0 var(--s-6) !important;
+  }
+  .pp-hero {
+    position: sticky !important;
+    top: 80px;
+    margin: 0 !important;
+    height: 520px !important;
+    border-radius: var(--r-xl) !important;
+  }
+  .pp-info, .pp-price-block, .pp-section, .pp-ar-callouts, .pp-reviews {
+    grid-column: 2;
+  }
+  .pp-hero {
+    grid-column: 1;
+    grid-row: 1 / span 10;
+  }
+
+  /* Buy bar: wider, centered */
+  .pp-buy-bar {
+    max-width: 1100px !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+
+  /* Admin dashboard: wider stat grids */
+  .ah-stats {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .ah-tools {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .asd-stats {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* Shopkeeper add-product: wider form */
+  .ap2-main {
+    max-width: 640px !important;
+  }
+
+  /* Onboarding: wider card */
+  .ob-inner {
+    max-width: 560px !important;
+  }
+  .ob-langs {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Bottom nav: more spacious */
+  .mp-nav {
+    padding: var(--s-3) var(--s-5) !important;
+  }
+  .mp-nav-btn {
+    min-width: 72px !important;
+    padding: var(--s-2) var(--s-4) !important;
+  }
+
+  /* Shelf cards bigger */
+  .sp-shelf-card {
+    flex: 0 0 180px !important;
+  }
+
+  /* Launcher: horizontal cards */
+  .launcher-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .launcher-card-feat {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1200px) {
+  .mp-main, .sp-main, .ah-main, .asd-main, .aq-main {
+    max-width: 1200px !important;
+  }
+  .mp-products-grid, .sp-products {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}

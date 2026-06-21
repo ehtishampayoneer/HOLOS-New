@@ -1,0 +1,128 @@
+/* ============================================================
+   HOLOS — Shop Layout CSS
+   Each layout has its own structural CSS. Theme colors come
+   from --shop-* variables set inline by ShopLayouts.themeVars()
+   ============================================================ */
+
+/* ---------- SHARED LAYOUT TOP BAR ---------- */
+.lt { min-height: 100vh; background: var(--shop-bg); color: var(--shop-ink); font-family: var(--shop-font-body); }
+.lt-top { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-5); position: sticky; top: 0; z-index: 20; }
+
+/* ---------- SHARED PRODUCT CARD ---------- */
+.lt-prod-card { background: var(--shop-surface); border: 1px solid var(--shop-border); border-radius: var(--shop-radius); overflow: hidden; cursor: pointer; transition: transform 160ms; }
+.lt-prod-card:hover { transform: translateY(-2px); }
+.lt-prod-img { aspect-ratio: 1; background: var(--shop-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.lt-prod-img img { width: 100%; height: 100%; object-fit: cover; }
+.lt-prod-placeholder { color: var(--shop-ink-dim); opacity: 0.4; }
+.lt-prod-placeholder svg { width: 36px; height: 36px; }
+.lt-prod-name { padding: var(--s-3) var(--s-3) 4px; font-weight: 600; font-size: var(--t-small); }
+.lt-prod-price { padding: 0 var(--s-3) var(--s-3); font-weight: 700; font-size: var(--t-small); color: var(--shop-accent); }
+
+/* ============================================================
+   APPLE PREMIUM LAYOUT
+   ============================================================ */
+.apple-lt main { background: var(--shop-bg); }
+.apple-hero { position: relative; min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-7); overflow: hidden; }
+.apple-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+.apple-hero-content { position: relative; z-index: 1; text-align: center; max-width: 720px; }
+.apple-hero-title { font-family: var(--shop-font-heading); font-size: clamp(3rem, 8vw, 5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-bottom: var(--s-4); color: var(--shop-ink); }
+.apple-hero-sub { font-size: clamp(1.1rem, 2.5vw, 1.5rem); color: var(--shop-ink-dim); margin-bottom: var(--s-5); line-height: 1.4; }
+.apple-cta { padding: var(--s-3) var(--s-6); background: var(--shop-accent); color: white; border: none; border-radius: var(--r-pill); font-size: var(--t-body); font-weight: 600; cursor: pointer; transition: all 160ms; }
+.apple-cta:hover { transform: scale(1.05); }
+.apple-scroll-hint { position: absolute; bottom: var(--s-5); left: 50%; transform: translateX(-50%); color: var(--shop-ink-dim); font-size: var(--t-small); animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100% {transform: translate(-50%, 0);} 50% {transform: translate(-50%, 8px);} }
+
+.apple-product-section { min-height: 80vh; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-7); align-items: center; padding: var(--s-8) var(--s-7); cursor: pointer; transition: background 240ms; }
+.apple-product-section:nth-child(even) { background: var(--shop-surface); direction: rtl; }
+.apple-product-section:nth-child(even) > * { direction: ltr; }
+.apple-product-section:hover { background: var(--shop-surface); }
+@media (max-width: 768px) {
+  .apple-product-section { grid-template-columns: 1fr; min-height: auto; padding: var(--s-6) var(--s-5); }
+}
+.apple-product-media { aspect-ratio: 1; background: var(--shop-surface); border-radius: var(--r-xl); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.apple-product-media img { width: 100%; height: 100%; object-fit: cover; }
+.apple-placeholder { color: var(--shop-ink-dim); }
+.apple-placeholder svg { width: 80px; height: 80px; opacity: 0.4; }
+.apple-eyebrow { font-size: var(--t-small); font-weight: 600; color: var(--shop-accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--s-2); }
+.apple-product-name { font-family: var(--shop-font-heading); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: var(--s-3); color: var(--shop-ink); }
+.apple-product-desc { font-size: var(--t-body); color: var(--shop-ink-dim); line-height: 1.6; margin-bottom: var(--s-4); }
+.apple-product-price { font-size: 1.5rem; font-weight: 700; color: var(--shop-accent); margin-bottom: var(--s-5); }
+.apple-grid-section { padding: var(--s-8) var(--s-7); }
+.apple-grid-title { font-family: var(--shop-font-heading); font-size: 2rem; font-weight: 700; margin-bottom: var(--s-5); text-align: center; color: var(--shop-ink); }
+.apple-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s-4); }
+
+/* ============================================================
+   NETFLIX LAYOUT
+   ============================================================ */
+.netflix-lt { background: #0A0A0A !important; color: white !important; }
+.netflix-lt .lt-top { background: rgba(10,10,10,0.92) !important; backdrop-filter: blur(10px); }
+.netflix-hero { min-height: 70vh; background-size: cover !important; background-position: center !important; display: flex; align-items: flex-end; padding: var(--s-8) var(--s-7); }
+.netflix-hero-body { max-width: 600px; }
+.netflix-eyebrow { font-size: var(--t-small); color: #5FEAAA; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--s-3); }
+.netflix-hero-title { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: var(--s-4); color: white; }
+.netflix-hero-desc { font-size: var(--t-body); color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: var(--s-5); }
+.netflix-hero-actions { display: flex; gap: var(--s-3); }
+.netflix-btn-primary { padding: var(--s-3) var(--s-5); background: white; color: black; border: none; border-radius: var(--r-sm); font-weight: 700; font-size: var(--t-body); cursor: pointer; }
+.netflix-btn-secondary { padding: var(--s-3) var(--s-5); background: rgba(255,255,255,0.15); color: white; border: none; border-radius: var(--r-sm); font-weight: 600; font-size: var(--t-body); cursor: pointer; backdrop-filter: blur(8px); }
+
+.netflix-row { padding: var(--s-5) 0; }
+.netflix-row-title { font-size: 1.3rem; font-weight: 700; padding: 0 var(--s-7); margin-bottom: var(--s-3); color: white; }
+.netflix-row-scroll { display: flex; gap: var(--s-3); overflow-x: auto; padding: 0 var(--s-7); scrollbar-width: none; scroll-behavior: smooth; }
+.netflix-row-scroll::-webkit-scrollbar { display: none; }
+.netflix-card { flex: 0 0 240px; cursor: pointer; transition: transform 240ms; }
+.netflix-card:hover { transform: scale(1.05); }
+.netflix-card-img { aspect-ratio: 16/10; background: #1A1A1A; border-radius: var(--r-sm); overflow: hidden; display: flex; align-items: center; justify-content: center; color: #444; }
+.netflix-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.netflix-card-img svg { width: 40px; height: 40px; }
+.netflix-card-info { padding: var(--s-2) var(--s-1); }
+.netflix-card-name { font-size: var(--t-small); font-weight: 600; color: white; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.netflix-card-price { font-size: var(--t-micro); color: #5FEAAA; font-weight: 700; }
+
+/* ============================================================
+   BENTO GRID LAYOUT
+   ============================================================ */
+.bento-lt main { padding: var(--s-5) var(--s-5) var(--s-8); max-width: 1200px; margin: 0 auto; }
+.bento-intro { text-align: center; padding: var(--s-7) 0 var(--s-6); }
+.bento-title { font-family: var(--shop-font-heading); font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: var(--s-3); color: var(--shop-ink); }
+.bento-sub { font-size: var(--t-body); color: var(--shop-ink-dim); }
+
+.bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 180px; gap: var(--s-3); margin-bottom: var(--s-7); }
+@media (max-width: 700px) { .bento-grid { grid-template-columns: repeat(2, 1fr); } }
+.bento-card { background: var(--shop-surface); border: 1px solid var(--shop-border); border-radius: 20px; overflow: hidden; position: relative; cursor: pointer; transition: transform 200ms; }
+.bento-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+
+.bento-feature { grid-column: span 2; grid-row: span 2; background: var(--shop-accent) !important; color: white; }
+.bento-feature .bento-img { width: 100%; height: 100%; object-fit: cover; }
+.bento-feature .bento-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: rgba(255,255,255,0.4); }
+.bento-feature .bento-placeholder svg { width: 80px; height: 80px; }
+.bento-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: var(--s-5); background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); color: white; }
+.bento-eyebrow { font-size: var(--t-micro); font-weight: 700; opacity: 0.9; letter-spacing: 0.1em; text-transform: uppercase; }
+.bento-name { font-size: 1.4rem; font-weight: 700; margin: var(--s-1) 0; }
+.bento-price { font-size: 1.1rem; font-weight: 700; }
+
+.bento-stats, .bento-stat-2 { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--s-5); text-align: center; color: var(--shop-ink); }
+.bento-stat-val { font-family: var(--shop-font-heading); font-size: 2.4rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; color: var(--shop-accent); }
+.bento-stat-label { font-size: var(--t-small); color: var(--shop-ink-dim); margin-top: var(--s-2); }
+.bento-cta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-2); background: var(--shop-accent) !important; color: white; }
+.bento-cta-icon { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
+.bento-cta-icon svg { width: 22px; height: 22px; }
+.bento-cta-text { font-weight: 600; }
+
+.bento-prod { display: flex; flex-direction: column; }
+.bento-prod.wide { grid-column: span 2; }
+.bento-prod .bento-img { width: 100%; flex: 1; object-fit: cover; }
+.bento-prod .bento-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--shop-ink-dim); opacity: 0.4; }
+.bento-prod .bento-placeholder svg { width: 36px; height: 36px; }
+.bento-prod-info { padding: var(--s-3); }
+.bento-prod-name { font-size: var(--t-small); font-weight: 600; color: var(--shop-ink); margin-bottom: 2px; }
+.bento-prod-price { font-size: var(--t-small); font-weight: 700; color: var(--shop-accent); }
+
+.bento-all { padding: var(--s-5) 0; }
+.bento-section-title { font-family: var(--shop-font-heading); font-size: 1.6rem; font-weight: 700; margin-bottom: var(--s-4); color: var(--shop-ink); }
+.bento-all-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--s-3); }
+
+/* ============================================================
+   CLASSIC LAYOUT (inherits .shp-* styles from customize.js)
+   ============================================================ */
+.classic-lt { font-family: var(--shop-font-body); }
+.classic-lt .lt-top { background: var(--shop-accent); }
