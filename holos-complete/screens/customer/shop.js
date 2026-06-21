@@ -236,7 +236,7 @@ function renderThemedBlock(b, shop, theme, colors) {
 
 function shopPageStyles() {
   return `
-    .sp2-cover { aspect-ratio: 16 / 7; max-height: 380px; min-height: 200px; position: relative; }
+    .sp2-cover { width: 100%; height: clamp(200px, 34vw, 380px); position: relative; }
     .sp2-cover-inner { position: relative; height: 100%; padding-top: var(--s-4); padding-bottom: var(--s-4); }
     .sp2-cover-actions { position: absolute; top: var(--s-4); right: var(--page-pad); display: flex; gap: var(--s-2); }
     .sp2-cover-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink); transition: all var(--d-fast); }
