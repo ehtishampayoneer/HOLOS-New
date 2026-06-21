@@ -1204,3 +1204,142 @@
 .mp-hero-overlay { z-index: 2; }
 .mp-hero-content { z-index: 3; }
 .mp-hero-nav, .mp-hero-dots { z-index: 4; }
+
+
+/* ============================================================
+   Auth screens (.au-*) — moved here from login.js so the SIGNUP
+   screen is styled even when reached directly (was unstyled before).
+   ============================================================ */
+.au { min-height: 100vh; background: var(--bg-pure); }
+      .au-top {
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        align-items: center;
+        padding: var(--s-4) var(--s-5);
+      }
+      .au-skip {
+        color: var(--ink-dim);
+        font-size: var(--t-small);
+        font-weight: var(--w-medium);
+        padding: var(--s-2) var(--s-4);
+      }
+      .au-main {
+        padding: var(--s-5) var(--s-5) var(--s-7);
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      .au-brand {
+        font-size: var(--t-small);
+        font-weight: var(--w-bold);
+        letter-spacing: 0.24em;
+        margin-bottom: var(--s-7);
+      }
+      .au-title {
+        font-size: var(--t-display);
+        font-weight: var(--w-bold);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: var(--s-3);
+      }
+      .au-sub {
+        color: var(--ink-dim);
+        margin-bottom: var(--s-6);
+        font-size: var(--t-body);
+      }
+
+      .au-form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-4);
+        margin-bottom: var(--s-5);
+      }
+      .au-field { position: relative; }
+      .au-label {
+        display: block;
+        font-size: var(--t-small);
+        color: var(--ink-dim);
+        margin-bottom: var(--s-2);
+        font-weight: var(--w-medium);
+      }
+      .au-input {
+        width: 100%;
+        padding: var(--s-4) var(--s-4);
+        background: var(--bg);
+        border: 1px solid transparent;
+        border-radius: var(--r-md);
+        font-size: var(--t-body);
+        transition: all var(--d-fast);
+      }
+      .au-input:focus {
+        background: var(--bg-pure);
+        border-color: var(--ink);
+      }
+      .au-forgot {
+        position: absolute;
+        top: 0; right: 0;
+        font-size: var(--t-small);
+        color: var(--info);
+        font-weight: var(--w-medium);
+        cursor: pointer;
+      }
+      .au-submit { margin-top: var(--s-2); }
+
+      .au-or {
+        text-align: center;
+        margin: var(--s-5) 0;
+        position: relative;
+      }
+      .au-or::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 0; right: 0;
+        height: 1px;
+        background: var(--border);
+      }
+      .au-or span {
+        position: relative;
+        background: var(--bg-pure);
+        padding: 0 var(--s-4);
+        font-size: var(--t-small);
+        color: var(--ink-muted);
+      }
+
+      .au-socials {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-2);
+        margin-bottom: var(--s-6);
+      }
+      .au-social {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--s-3);
+        padding: var(--s-4);
+        background: var(--bg-pure);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--r-pill);
+        font-size: var(--t-body);
+        font-weight: var(--w-medium);
+        transition: all var(--d-fast);
+      }
+      .au-social:hover { background: var(--bg); }
+      .au-social svg { width: 18px; height: 18px; }
+      .au-social-wa {
+        background: #25D366;
+        color: white;
+        border-color: #25D366;
+      }
+      .au-social-wa:hover { background: #1ec05a; }
+
+      .au-bottom {
+        text-align: center;
+        font-size: var(--t-small);
+        color: var(--ink-dim);
+      }
+      .au-bottom a {
+        color: var(--info);
+        font-weight: var(--w-semibold);
+        margin-left: var(--s-2);
+        cursor: pointer;
+      }
