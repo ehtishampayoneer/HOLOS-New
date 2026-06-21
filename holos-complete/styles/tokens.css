@@ -144,7 +144,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 img, video, model-viewer { max-width: 100%; display: block; }
-button { font-family: inherit; }
+button { font-family: inherit; background: none; border: none; cursor: pointer; }
 
 /* Editorial helpers */
 .serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
