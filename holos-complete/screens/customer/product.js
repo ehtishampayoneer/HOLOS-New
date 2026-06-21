@@ -50,15 +50,10 @@ function renderProductPage(productId) {
       if (main && t.dataset.src) main.src = t.dataset.src;
     }));
 
-    // AR model: lock to real-world size using the audited strategy.
+    // Store preview auto-fits the frame (scale 1). Real-world size is applied
+    // ONLY when AR launches (launchRoomAR) and reset when AR closes.
     const mv = document.getElementById('pp2-model');
-    if (mv && product.models) {
-      const dims = product.models.realDimsCm;
-      const strategy = product.models.scaleStrategy || 'auto';
-      const hasCanvas = dims && (dims.w > 0 || dims.h > 0 || dims.d > 0);
-      if (hasCanvas) ModelFit.apply(mv, dims, { strategy });
-      else if (product.models.realSizeCm) ModelFit.apply(mv, product.models.realSizeCm, { strategy });
-    }
+    if (mv) ModelFit.resetFit(mv);
   }, 60);
 
   return `
@@ -364,20 +359,14 @@ function submitReview(productId) {
   Router.reload();
 }
 
-async function launchRoomAR() {
+function launchRoomAR() {
   const mv = document.getElementById('pp2-model');
-  if (!mv || !mv.activateAR) { alert('AR requires a phone with iOS Safari or Android Chrome.'); return; }
-  // Lock the model to its real-world size at the moment AR launches. WebXR and
-  // the iOS auto-generated USDZ both honor the applied scale, so AR appears at
-  // the exact declared cm — never the raw model size.
-  try {
-    const w = +mv.dataset.rw || 0, h = +mv.dataset.rh || 0, d = +mv.dataset.rd || 0;
-    const longest = +mv.dataset.rlongest || 0;
-    const strategy = mv.dataset.strategy || 'auto';
-    if (w || h || d) await ModelFit.apply(mv, { w, h, d }, { strategy });
-    else if (longest) await ModelFit.apply(mv, longest, { strategy });
-  } catch (e) { log('Customer/Product', 'AR scale re-apply failed: ' + e.message, 'warn'); }
-  mv.activateAR();
+  if (!mv) { alert('AR requires a phone with iOS Safari or Android Chrome.'); return; }
+  const w = +mv.dataset.rw || 0, h = +mv.dataset.rh || 0, d = +mv.dataset.rd || 0;
+  const longest = +mv.dataset.rlongest || 0;
+  const strategy = mv.dataset.strategy || 'auto';
+  const size = (w || h || d) ? { w, h, d } : (longest || null);
+  ModelFit.launchAR(mv, size, { strategy });
 }
 
 function orderOnWhatsApp(productId) {
