@@ -41,7 +41,7 @@ const SizeEditor = (() => {
           <input id="${idPrefix}-d" class="fr-input" type="number" min="0" max="10000" step="0.1" value="${dims.d || ''}" placeholder="${sug?.d || ''}" oninput="if(this.value.length>6){this.value=this.value.slice(0,6);}" />
         </div>
       </div>
-      <div class="fr-hint">Width = side-to-side, Height = top-to-bottom, Depth = front-to-back. The model fits inside this box keeping its aspect ratio. Leave a dimension blank or 0 to ignore it.</div>
+      <div class="fr-hint"><strong>Real-life size (shown in AR).</strong> Width = side-to-side, Height = top-to-bottom, Depth = front-to-back — in centimeters. This is the exact size the product appears at when a customer places it in their room. The store preview above is separate and auto-fits its frame. Leave a dimension blank to ignore it.</div>
     `;
   }
 
