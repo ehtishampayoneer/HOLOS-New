@@ -53,7 +53,7 @@ function renderProductPage(productId) {
     // Store preview auto-fits the frame (scale 1). Real-world size is applied
     // ONLY when AR launches (launchRoomAR) and reset when AR closes.
     const mv = document.getElementById('pp2-model');
-    if (mv) ModelFit.resetFit(mv);
+    if (mv) { ModelFit.resetFit(mv); mv.addEventListener('load', () => ModelFit.resetFit(mv)); }
   }, 60);
 
   return `
