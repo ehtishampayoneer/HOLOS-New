@@ -171,6 +171,11 @@ const ModelFit = (() => {
     if ('scale' in mvEl) { try { mvEl.scale = scaleStr; } catch (e) {} }
     mvEl.setAttribute('ar-scale', 'fixed');
 
+    // Opt-in: re-frame so the (possibly distorted) model fits its box. Used by
+    // the seller/admin preview so a squeeze/stretch is visible without the
+    // model being huge or clipped.
+    if (opts.frame && mvEl.updateFraming) { try { mvEl.updateFraming(); } catch (e) {} }
+
     // DO NOT auto-frame the camera. The whole point of showing the model at
     // its real-world size is so the seller can SEE if it's huge or tiny.
     // If we updateFraming() after every change, the camera always nicely
