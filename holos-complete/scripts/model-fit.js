@@ -198,28 +198,90 @@ const ModelFit = (() => {
     if (mvEl.updateFraming) { try { mvEl.updateFraming(); } catch (e) {} }
   }
 
+  /* ---- AR coaching overlay (shown in-page before native AR takes over) ---- */
+  function injectCoachStyles() {
+    if (document.getElementById('arcoach-styles')) return;
+    const st = document.createElement('style');
+    st.id = 'arcoach-styles';
+    st.textContent = `
+    .arcoach{position:fixed;inset:0;z-index:99999;background:rgba(26,23,20,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;animation:arcoach-fade .25s ease;}
+    @keyframes arcoach-fade{from{opacity:0}to{opacity:1}}
+    .arcoach-card{background:#fff;border-radius:24px;padding:30px 26px;max-width:360px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.45);animation:arcoach-pop .3s cubic-bezier(.2,.8,.2,1);}
+    @keyframes arcoach-pop{from{transform:translateY(16px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+    .arcoach-scan{position:relative;width:128px;height:128px;margin:0 auto 22px;}
+    .arcoach-ring{position:absolute;inset:0;border:2px solid var(--accent,#8B6F47);border-radius:50%;opacity:0;animation:arcoach-pulse 2.4s ease-out infinite;}
+    .arcoach-ring:nth-child(2){animation-delay:.8s}
+    .arcoach-ring:nth-child(3){animation-delay:1.6s}
+    @keyframes arcoach-pulse{0%{transform:scale(.25);opacity:.85}100%{transform:scale(1);opacity:0}}
+    .arcoach-sweep{position:absolute;top:50%;left:50%;width:46%;height:2px;background:linear-gradient(90deg,var(--accent,#8B6F47),transparent);transform-origin:left center;animation:arcoach-sweep 1.8s linear infinite;border-radius:2px;}
+    @keyframes arcoach-sweep{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .arcoach-reticle{position:absolute;top:50%;left:50%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:10px;box-shadow:0 0 0 2px var(--accent,#8B6F47) inset;animation:arcoach-glow 1.8s ease-in-out infinite;}
+    @keyframes arcoach-glow{0%,100%{opacity:.45}50%{opacity:1}}
+    .arcoach-dot{position:absolute;top:50%;left:50%;width:8px;height:8px;border-radius:50%;background:var(--accent,#8B6F47);transform:translate(-50%,-50%);}
+    .arcoach h3{font-family:var(--font-serif,Georgia,serif);font-weight:600;font-size:1.45rem;margin:0 0 16px;color:#1A1714;line-height:1.2;}
+    .arcoach ol{text-align:left;margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:13px;}
+    .arcoach li{display:flex;gap:12px;align-items:center;font-size:.94rem;color:#4a453d;line-height:1.35;}
+    .arcoach li .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent,#8B6F47);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+    .arcoach-start{width:100%;padding:15px;border-radius:999px;background:#1A1714;color:#fff;font-size:1rem;font-weight:600;border:none;cursor:pointer;margin-bottom:8px;}
+    .arcoach-start:active{transform:scale(.98)}
+    .arcoach-cancel{background:none;border:none;color:#8A857C;font-size:.9rem;cursor:pointer;padding:8px;width:100%;}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function showARCoach(opts, onStart) {
+    injectCoachStyles();
+    const name = (opts && opts.name) ? opts.name : 'this item';
+    const surface = (opts && opts.placement === 'wall') ? 'wall' : 'floor';
+    const ov = document.createElement('div');
+    ov.className = 'arcoach';
+    ov.innerHTML = `
+      <div class="arcoach-card" role="dialog" aria-modal="true">
+        <div class="arcoach-scan">
+          <div class="arcoach-ring"></div><div class="arcoach-ring"></div><div class="arcoach-ring"></div>
+          <div class="arcoach-reticle"></div><div class="arcoach-sweep"></div><div class="arcoach-dot"></div>
+        </div>
+        <h3>Place ${name} in your room</h3>
+        <ol>
+          <li><span class="n">1</span><span>Point your camera at the ${surface}</span></li>
+          <li><span class="n">2</span><span>Move your phone slowly to scan the ${surface}</span></li>
+          <li><span class="n">3</span><span>Tap to place it at its true size, then walk around to view</span></li>
+        </ol>
+        <button class="arcoach-start">Start AR</button>
+        <button class="arcoach-cancel">Cancel</button>
+      </div>`;
+    const close = () => { if (ov.parentNode) ov.parentNode.removeChild(ov); };
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    ov.querySelector('.arcoach-cancel').addEventListener('click', close);
+    ov.querySelector('.arcoach-start').addEventListener('click', () => { close(); try { onStart(); } catch (e) {} });
+    document.body.appendChild(ov);
+  }
+
   /* Launch AR at REAL-WORLD size, then return the preview to auto-fit.
-     Preview/thumbnail stays scale 1 (nice framing); the real cm size is
-     applied only for the AR session and reset the moment AR closes. */
+     Shows a coaching overlay first (where to point, scan, tap). Preview stays
+     scale 1; the real cm size is applied only for the AR session and reset on exit. */
   async function launchAR(mvEl, sizeOrCanvas, opts = {}) {
     if (!mvEl) return;
-    if (typeof mvEl.activateAR !== 'function') {
-      alert('AR requires a phone with iOS Safari or Android Chrome.');
+    if (typeof mvEl.activateAR !== 'function' || mvEl.canActivateAR === false) {
+      alert('Open this product on your phone (iPhone or Android) to place it in your room with AR.');
       return;
     }
-    if (sizeOrCanvas != null) {
-      try { await apply(mvEl, sizeOrCanvas, opts); }
-      catch (e) { log('ModelFit', 'AR pre-scale failed: ' + e.message, 'warn'); }
-    }
-    const onStatus = (ev) => {
-      if (ev.detail && ev.detail.status === 'not-presenting') {
-        mvEl.removeEventListener('ar-status', onStatus);
-        resetFit(mvEl);
+    const startAR = async () => {
+      if (sizeOrCanvas != null) {
+        try { await apply(mvEl, sizeOrCanvas, opts); }
+        catch (e) { log('ModelFit', 'AR pre-scale failed: ' + e.message, 'warn'); }
       }
+      const onStatus = (ev) => {
+        if (ev.detail && ev.detail.status === 'not-presenting') {
+          mvEl.removeEventListener('ar-status', onStatus);
+          resetFit(mvEl);
+        }
+      };
+      mvEl.addEventListener('ar-status', onStatus);
+      try { const r = mvEl.activateAR(); if (r && r.catch) r.catch(() => {}); }
+      catch (e) { log('ModelFit', 'activateAR failed: ' + e.message, 'warn'); }
     };
-    mvEl.addEventListener('ar-status', onStatus);
-    try { const r = mvEl.activateAR(); if (r && r.catch) r.catch(() => {}); }
-    catch (e) { log('ModelFit', 'activateAR failed: ' + e.message, 'warn'); }
+    showARCoach(opts, startAR);
   }
 
   /* Suggested sizes by subcategory — used to pre-fill the size inputs
