@@ -638,6 +638,7 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updatePreview);
     });
+    if (mv) mv.addEventListener('load', updatePreview);
   }, 100);
 
   // Build spec rows from schema
