@@ -172,6 +172,7 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
               <div class="ep-section-label">Your product at this size <span>· check for squeeze</span></div>
               <model-viewer
                 src="${p.models.glb}"
+                ${p.models.usdz ? `ios-src="${p.models.usdz}"` : ''}
                 alt="${p.name}"
                 ar ar-modes="webxr quick-look" ar-scale="fixed"
                 camera-controls auto-rotate auto-rotate-delay="800"
