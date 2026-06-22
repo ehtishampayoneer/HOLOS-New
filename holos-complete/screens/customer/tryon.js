@@ -547,6 +547,7 @@ function renderFootTryOn(product) {
           <model-viewer
             id="foot-model"
             src="${product.models.glb}"
+            ${product.models.usdz ? `ios-src="${product.models.usdz}"` : ''}
             ${product.models.poster ? `poster="${product.models.poster}"` : ''}
             alt="${product.name}"
             ar
