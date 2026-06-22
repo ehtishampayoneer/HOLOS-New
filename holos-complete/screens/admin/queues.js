@@ -617,23 +617,13 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
     SizeEditor.injectStyles();
     if (window.ModelAudit) ModelAudit.injectStyles();
 
-    // Apply current size to preview
-    if (mv && p.models?.realDimsCm) {
-      const d = p.models.realDimsCm;
-      const strategy = p.models.scaleStrategy || 'auto';
-      if (d.w || d.h || d.d) ModelFit.apply(mv, d, { strategy });
-    }
+    // Audit preview auto-fits its box; the scale-check diagram + AR verify size.
+    if (mv) ModelFit.resetFit(mv);
 
     // Live-update preview when any W/H/D input changes. Use whichever
     // strategy the admin has currently picked (if they ran audit), else
     // the saved one, else 'auto'.
-    const updatePreview = () => {
-      if (!mv) return;
-      const size = SizeEditor.read('apr');
-      const { w, h, d } = size.realDimsCm;
-      const strategy = (window.ModelAudit && ModelAudit.readChoice('apr')) || p.models?.scaleStrategy || 'auto';
-      if (w || h || d) ModelFit.apply(mv, size.realDimsCm, { strategy });
-    };
+    const updatePreview = () => { if (!mv) return; };
     ['apr-w','apr-h','apr-d'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updatePreview);
