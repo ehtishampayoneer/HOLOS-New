@@ -499,8 +499,8 @@ function productCard(p) {
   `;
 
   return `
-    <a href="#/customer/product/${p.id}" class="mk-pcard" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;">
-      <div class="mk-pcard-media" style="position:relative;aspect-ratio:4/5;background:#F5F2EC;border-radius:12px;overflow:hidden;margin-bottom:12px;">
+    <a href="#/customer/product/${p.id}" class="mk-pcard" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #ECE6DB;border-radius:16px;overflow:hidden;padding:8px;box-shadow:0 1px 2px rgba(26,23,20,0.05);">
+      <div class="mk-pcard-media" style="position:relative;aspect-ratio:4/5;background:#F5F2EC;border-radius:10px;overflow:hidden;margin-bottom:10px;">
         ${noImagePlaceholder}
         ${photo ? `<img src="${photo}" alt="${nameSafe}" loading="lazy" onerror="window.__mkImgErr(this)" style="position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:cover;" />` : ''}
         <div class="mk-pcard-badges" style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:3;">
@@ -512,13 +512,13 @@ function productCard(p) {
           <svg viewBox="0 0 24 24" fill="${isFav ? '#B8553A' : 'none'}" stroke="${isFav ? '#B8553A' : '#1A1714'}" stroke-width="2" style="width:18px;height:18px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
-      <div style="padding:0 4px;display:flex;flex-direction:column;gap:2px;">
-        <div style="font-size:0.7rem;color:#6B665E;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;">${shop ? shop.name : ''}</div>
-        <h3 style="font-size:0.95rem;font-weight:500;color:#1A1714;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:4px 0;">${p.name || ''}</h3>
-        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:0.95rem;font-weight:600;color:#1A1714;">${priceText}</span>
-          ${wasText ? `<span style="font-size:0.8rem;color:#A8A096;text-decoration:line-through;">${wasText}</span>` : ''}
-          ${p.rating > 0 ? `<span style="font-size:0.75rem;color:#6B665E;margin-left:auto;">★ ${p.rating.toFixed(1)}</span>` : ''}
+      <div style="padding:2px 4px 4px;display:flex;flex-direction:column;gap:3px;">
+        <h3 style="font-size:1rem;font-weight:700;color:#1A1714;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;min-height:2.5em;">${p.name || ''}</h3>
+        <div style="font-size:0.74rem;color:#8A857C;font-weight:500;letter-spacing:0.01em;">${shop ? shop.name : ''}</div>
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:3px;">
+          <span style="font-size:1.1rem;font-weight:700;color:#1A1714;letter-spacing:-0.01em;">${priceText}</span>
+          ${wasText ? `<span style="font-size:0.82rem;color:#A8A096;text-decoration:line-through;">${wasText}</span>` : ''}
+          ${p.rating > 0 ? `<span style="font-size:0.78rem;color:#6B665E;margin-left:auto;font-weight:600;">★ ${p.rating.toFixed(1)}</span>` : ''}
         </div>
       </div>
     </a>
