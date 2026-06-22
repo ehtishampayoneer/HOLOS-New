@@ -87,7 +87,7 @@
   --s-11: 8rem;     /* 128px */
 
   /* Fluid page padding — grows with screen width */
-  --page-pad: clamp(1rem, 4vw, 3rem);
+  --page-pad: clamp(1.25rem, 4vw, 3rem);
 
   /* ----- Radius ----- */
   --r-sm: 8px;
