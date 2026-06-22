@@ -22,10 +22,12 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
     document.querySelectorAll('.ep-photo-slot').forEach((slot, i) => wireEpPhotoSlot(slot, i, pid));
     SizeEditor.injectStyles();
 
-    // Store preview auto-fits the frame (scale 1). Real-world size is applied
-    // only when the seller taps "Test in AR" (launchEpAR) and reset on exit.
+    // Seller preview shows the ACTUAL model at the entered size (framed) so a
+    // squeeze/stretch is visible. Customer thumbnail stays clean (scale 1).
     const mv = document.querySelector('.ep-model-preview model-viewer');
-    if (mv) ModelFit.resetFit(mv);
+    const rd0 = p && p.models && p.models.realDimsCm;
+    if (mv && rd0 && (rd0.w || rd0.h || rd0.d)) ModelFit.apply(mv, rd0, { strategy: p.models.scaleStrategy || 'auto', frame: true });
+    else if (mv) ModelFit.resetFit(mv);
 
     // Live-update preview when any W/H/D input changes.
     const updatePreview = () => {
@@ -33,6 +35,9 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
       const mvEl = document.querySelector('.ep-model-preview model-viewer');
       if (!mvEl) return;
       const { w, h, d } = size.realDimsCm;
+      const strat = (p && p.models && p.models.scaleStrategy) || 'auto';
+      if (w || h || d) ModelFit.apply(mvEl, size.realDimsCm, { strategy: strat, frame: true });
+      else ModelFit.resetFit(mvEl);
       const hint = document.querySelector('.ep-preview-hint');
       if (hint) {
         if (!(w || h || d)) {
@@ -163,7 +168,7 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
 
           ${p.models?.glb ? `
             <div class="ep-model-preview">
-              <div class="ep-section-label">Store preview <span>· auto-fits the frame</span></div>
+              <div class="ep-section-label">Your product at this size <span>· check for squeeze</span></div>
               <model-viewer
                 src="${p.models.glb}"
                 alt="${p.name}"
