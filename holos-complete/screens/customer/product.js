@@ -82,6 +82,7 @@ function renderProductPage(productId) {
                 <model-viewer
                   id="pp2-model"
                   src="${product.models.glb}"
+                  ${product.models.usdz ? `ios-src="${product.models.usdz}"` : ''}
                   ${product.models.poster ? `poster="${product.models.poster}"` : ''}
                   alt="${(product.name || '').replace(/"/g, '&quot;')}"
                   ar ar-modes="webxr quick-look" ar-scale="fixed"
