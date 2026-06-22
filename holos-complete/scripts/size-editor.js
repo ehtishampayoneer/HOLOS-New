@@ -77,6 +77,7 @@ const SizeEditor = (() => {
      size to a typical item in that category. Lets seller/admin confirm the
      real-life size is sensible without needing a phone. */
   function scaleSvg(w, h, d, subId) {
+   try {
     w = Number(w) || 0; h = Number(h) || 0; d = Number(d) || 0;
     const hasAny = (w > 0 || h > 0 || d > 0);
     const PERSON_CM = 170, BUDGET = 200, ground = 225;
@@ -95,7 +96,7 @@ const SizeEditor = (() => {
     const prodTop = ground - pH;
     const personX = 78, prodX = 205;
 
-    const sug = getSuggestion(subId);
+    const sug = ModelFit.getSuggestion(subId);
     let verdict = '', vclass = 'muted';
     if (!hasAny) {
       verdict = 'Enter Width / Height / Depth to preview the size next to a person.';
@@ -122,6 +123,7 @@ const SizeEditor = (() => {
     ) : '';
 
     return svg + '<div class="se-verdict ' + vclass + '">' + verdict + '</div>';
+   } catch (e) { try { log('SizeEditor', 'scaleSvg failed: ' + e.message, 'warn'); } catch(_){} return ''; }
   }
 
   function updateDiagram(prefix) {
