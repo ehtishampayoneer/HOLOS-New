@@ -56,6 +56,9 @@ function renderProductPage(productId) {
     if (mv) { ModelFit.resetFit(mv); mv.addEventListener('load', () => ModelFit.resetFit(mv)); }
   }, 60);
 
+  const arPlacement = (product.tryOn === 'wall' || /wall|art|mirror|poster|frame|wallpaper|tapestr/i.test((product.subcategory||'')+' '+(product.category||''))) ? 'wall' : 'floor';
+  const arName = (product.name || 'this item').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+
   return `
     ${navMarkup(customer)}
     <div class="screen mk-screen">
@@ -87,6 +90,9 @@ function renderProductPage(productId) {
                   data-rd="${product.models.realDimsCm?.d || 0}"
                   data-rlongest="${product.models.realSizeCm || 0}"
                   data-strategy="${product.models.scaleStrategy || 'auto'}"
+                  ar-placement="${arPlacement}"
+                  data-placement="${arPlacement}"
+                  data-name="${arName}"
                   camera-controls touch-action="pan-y"
                   auto-rotate auto-rotate-delay="2400" rotation-per-second="14deg"
                   shadow-intensity="1" exposure="1.15"
@@ -366,7 +372,7 @@ function launchRoomAR() {
   const longest = +mv.dataset.rlongest || 0;
   const strategy = mv.dataset.strategy || 'auto';
   const size = (w || h || d) ? { w, h, d } : (longest || null);
-  ModelFit.launchAR(mv, size, { strategy });
+  ModelFit.launchAR(mv, size, { strategy, placement: mv.dataset.placement || 'floor', name: mv.dataset.name || 'this item' });
 }
 
 function orderOnWhatsApp(productId) {
