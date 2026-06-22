@@ -263,9 +263,9 @@
   flex-direction: column;
   text-decoration: none;
   color: var(--ink);
-  transition: transform var(--d-base) var(--ease-out);
+  transition: transform var(--d-base) var(--ease-out), box-shadow var(--d-base) var(--ease-out);
 }
-.mk-pcard:hover { transform: translateY(-4px); }
+.mk-pcard:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(26,23,20,0.10); }
 .mk-pcard-media {
   position: relative;
   aspect-ratio: 4 / 5;
