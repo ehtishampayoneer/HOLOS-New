@@ -617,13 +617,23 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
     SizeEditor.injectStyles();
     if (window.ModelAudit) ModelAudit.injectStyles();
 
-    // Audit preview auto-fits its box; the scale-check diagram + AR verify size.
-    if (mv) ModelFit.resetFit(mv);
+    // Audit preview shows the ACTUAL model at the entered size (framed), with
+    // the chosen strategy, so the admin can see any squeeze/stretch.
+    const rd0 = p.models && p.models.realDimsCm;
+    if (mv && rd0 && (rd0.w || rd0.h || rd0.d)) ModelFit.apply(mv, rd0, { strategy: p.models.scaleStrategy || 'auto', frame: true });
+    else if (mv) ModelFit.resetFit(mv);
 
     // Live-update preview when any W/H/D input changes. Use whichever
     // strategy the admin has currently picked (if they ran audit), else
     // the saved one, else 'auto'.
-    const updatePreview = () => { if (!mv) return; };
+    const updatePreview = () => {
+      if (!mv) return;
+      const size = SizeEditor.read('apr');
+      const { w, h, d } = size.realDimsCm;
+      const strategy = (window.ModelAudit && ModelAudit.readChoice('apr')) || (p.models && p.models.scaleStrategy) || 'auto';
+      if (w || h || d) ModelFit.apply(mv, size.realDimsCm, { strategy, frame: true });
+      else ModelFit.resetFit(mv);
+    };
     ['apr-w','apr-h','apr-d'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updatePreview);
