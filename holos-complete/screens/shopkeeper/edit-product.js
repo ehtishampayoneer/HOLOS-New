@@ -60,6 +60,7 @@ Router.registerDynamic('/shopkeeper/edit-product/', (pid) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updatePreview);
     });
+    if (mv) mv.addEventListener('load', updatePreview);
   }, 60);
 
   return `
