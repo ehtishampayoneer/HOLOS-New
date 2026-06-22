@@ -354,7 +354,7 @@ Router.register('/shopkeeper/add-model', () => {
         <div class="fr-field">
           <label class="fr-label">Longest dimension (cm) <span class="fr-req">*</span></label>
           <input id="ap2-model-size" class="fr-input" type="number" placeholder="e.g. 30" value="${d.modelSize || ''}"
-                 oninput="if(document.getElementById('ap2-mv-preview')){ModelFit.apply(document.getElementById('ap2-mv-preview'), Number(this.value));}" />
+                 oninput="if(document.getElementById('ap2-mv-preview')){ModelFit.resetFit(document.getElementById('ap2-mv-preview'));}" />
           <div class="ap2-size-hint">${ModelFit.sizeHint(sub.tryOn)}</div>
         </div>
 
@@ -432,7 +432,7 @@ function showModelPreview(url, sizeCm) {
   `;
   setTimeout(() => {
     const mv = document.getElementById('ap2-mv-preview');
-    if (mv && sizeCm) ModelFit.apply(mv, Number(sizeCm));
+    if (mv) ModelFit.resetFit(mv);
   }, 100);
 }
 
