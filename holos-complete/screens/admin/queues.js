@@ -639,6 +639,7 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
       if (el) el.addEventListener('input', updatePreview);
     });
     if (mv) mv.addEventListener('load', updatePreview);
+    if (mv) mv.addEventListener('load', async () => { try { const raw = await ModelFit.measureRaw(mv); SizeEditor.setRawWarning('apr', raw); } catch (e) {} });
   }, 100);
 
   // Build spec rows from schema
@@ -735,6 +736,13 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
                   <div class="fr-hint" style="margin-top:var(--s-2);">No audit run yet. Customer AR is using automatic detection — click "Run audit" to compare the .glb against the declared size and lock in a strategy.</div>
                 `}
               </div>
+            </div>
+
+            <div style="margin-top:var(--s-4);padding-top:var(--s-4);border-top:1px solid var(--border);">
+              <label class="fr-label" style="margin:0 0 var(--s-2);">Fix size on every phone</label>
+              <p class="fr-hint" style="margin:0 0 var(--s-3);">Bakes the size above into fresh <strong>.glb + .usdz</strong> files so AR is correct on <strong>iPhone and Android</strong> — even if the seller exported the model at the wrong scale. Set the size (and pick a strategy in audit) first.</p>
+              <button type="button" class="btn btn-block" id="apr-normalize-btn" onclick="normalizeModelToRealSize('${p.id}')" style="background:var(--ink);color:#fff;">Normalize to real size &amp; save</button>
+              <div id="apr-normalize-status" class="fr-hint" style="margin-top:var(--s-2);display:none;"></div>
             </div>
 
             <button class="btn btn-primary btn-block" onclick="saveAdminModelEdits('${p.id}')" style="margin-top:var(--s-3);">Save AR model changes</button>
@@ -995,6 +1003,63 @@ async function handleAdminModelUpload(e, kind) {
   } catch (err) {
     alert('Upload failed: ' + err.message);
     if (statusEl) statusEl.textContent = 'Retry';
+  }
+}
+
+function _bakerReady(timeoutMs) {
+  return new Promise((resolve, reject) => {
+    if (window.ModelBaker) return resolve();
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+      if (window.ModelBaker) { clearInterval(iv); resolve(); }
+      else if (Date.now() - t0 > (timeoutMs || 20000)) { clearInterval(iv); reject(new Error('3D engine failed to load — check your connection and retry')); }
+    }, 150);
+  });
+}
+
+async function normalizeModelToRealSize(pid) {
+  const p = State.getProduct(pid);
+  const srcGlb = (window._adminPendingModels && window._adminPendingModels.glb) || (p && p.models && p.models.glb);
+  if (!p || !srcGlb) { alert('Upload a .glb model first, then normalize.'); return; }
+
+  const sizeData = SizeEditor.read('apr');
+  const whd = sizeData.realDimsCm || { w: 0, h: 0, d: 0 };
+  const dims = (whd.w || whd.h || whd.d) ? whd
+             : (sizeData.realSizeCm ? { w: sizeData.realSizeCm, h: 0, d: 0 } : null);
+  if (!dims) { alert('Enter the real-world size (W \u00d7 H \u00d7 D in cm) above first.'); document.getElementById('apr-w')?.focus(); return; }
+
+  const strategy = (window.ModelAudit && ModelAudit.readChoice('apr')) || (p.models && p.models.scaleStrategy) || 'auto';
+  const btn = document.getElementById('apr-normalize-btn');
+  const st = document.getElementById('apr-normalize-status');
+  const show = (m) => { if (st) { st.style.display = 'block'; st.textContent = m; } };
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+  try {
+    show('Loading 3D engine\u2026');
+    await _bakerReady();
+    show('Reading & resizing model\u2026 (this can take a moment for big files)');
+    const out = await ModelBaker.bake(srcGlb, dims, { strategy });
+
+    show('Uploading corrected .glb\u2026');
+    const glbFile = new File([out.glbBlob], 'normalized.glb', { type: 'model/gltf-binary' });
+    const glbUrl = await Storage.uploadProductModel(p.shop, glbFile, 'glb');
+
+    show('Uploading corrected .usdz\u2026');
+    const usdzFile = new File([out.usdzBlob], 'normalized.usdz', { type: 'model/vnd.usdz+zip' });
+    const usdzUrl = await Storage.uploadProductModel(p.shop, usdzFile, 'usdz');
+
+    window._adminPendingModels = window._adminPendingModels || {};
+    window._adminPendingModels.glb = glbUrl;
+    window._adminPendingModels.usdz = usdzUrl;
+
+    const n = out.normalized;
+    show('\u2713 Normalized to ' + Math.round(n.w) + ' \u00d7 ' + Math.round(n.h) + ' \u00d7 ' + Math.round(n.d) + ' cm. Saving\u2026');
+    log('Admin', 'normalized model for ' + pid + ' \u2192 ' + Math.round(n.w) + 'x' + Math.round(n.h) + 'x' + Math.round(n.d) + 'cm');
+    await saveAdminModelEdits(pid);
+  } catch (e) {
+    show('Failed: ' + e.message);
+    alert('Normalize failed: ' + e.message + '\n\nThe original model is unchanged.');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
   }
 }
 
