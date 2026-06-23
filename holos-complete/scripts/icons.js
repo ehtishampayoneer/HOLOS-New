@@ -35,6 +35,7 @@ const Icons = {
   chart: `<svg viewBox="0 0 24 24"><path d="M4 20 L4 4 M4 20 L20 20 M8 16 L8 12 M12 16 L12 8 M16 16 L16 14 M20 16 L20 6"/></svg>`,
   package: `<svg viewBox="0 0 24 24"><path d="M3 8 L12 4 L21 8 L21 17 L12 21 L3 17 Z M3 8 L12 12 L21 8 M12 12 L12 21"/></svg>`,
   user: `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21 Q 4 14 12 14 Q 20 14 20 21"/></svg>`,
+  logout: `<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
   zap: `<svg viewBox="0 0 24 24"><path d="M13 3 L4 13 L11 13 L10 21 L20 11 L13 11 Z"/></svg>`,
   home: `<svg viewBox="0 0 24 24"><path d="M3 11 L12 3 L21 11 L21 21 L14 21 L14 14 L10 14 L10 21 L3 21 Z"/></svg>`,
   search: `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16 L21 21"/></svg>`,
