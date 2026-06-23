@@ -16,11 +16,19 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
 
 const CDN = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/';
+
+let _renderer = null;
+function getRenderer() {
+  if (_renderer !== null) return _renderer;
+  try { _renderer = new THREE.WebGLRenderer(); } catch (e) { _renderer = false; }
+  return _renderer || null;
+}
 
 function makeLoader() {
   const loader = new GLTFLoader();
@@ -30,6 +38,14 @@ function makeLoader() {
     loader.setDRACOLoader(draco);
   } catch (e) {}
   try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) {}
+  try {
+    const r = getRenderer();
+    if (r) {
+      const ktx2 = new KTX2Loader().setTranscoderPath(CDN + 'libs/basis/');
+      ktx2.detectSupport(r);
+      loader.setKTX2Loader(ktx2);
+    }
+  } catch (e) {}
   return loader;
 }
 
@@ -66,21 +82,23 @@ async function bake(glbUrl, target, opts = {}) {
   // True size at scale 1
   const box = new THREE.Box3().setFromObject(model);
   const rsize = new THREE.Vector3(); box.getSize(rsize);
-  const rcenter = new THREE.Vector3(); box.getCenter(rcenter);
   const raw = { x: rsize.x || 1e-6, y: rsize.y || 1e-6, z: rsize.z || 1e-6 };
 
   const s = computeScale(raw, target, strategy);
 
-  // Centre the model at the origin, then scale through a wrapper group and
-  // rest its base on the floor (y = 0) for clean AR placement.
-  model.position.x -= rcenter.x;
-  model.position.y -= rcenter.y;
-  model.position.z -= rcenter.z;
-
+  // Scale through a wrapper, then centre on X/Z and rest the base on the floor
+  // (y = 0) using the SCALED bounds — robust to any transforms baked into the
+  // model. Uniform scaling never distorts; only mismatched per-axis can.
   const wrap = new THREE.Group();
-  wrap.scale.set(s.x, s.y, s.z);
   wrap.add(model);
-  wrap.position.y = (raw.y * s.y) / 2;
+  wrap.scale.set(s.x, s.y, s.z);
+  wrap.updateMatrixWorld(true);
+
+  const sbox = new THREE.Box3().setFromObject(wrap);
+  const sc = new THREE.Vector3(); sbox.getCenter(sc);
+  wrap.position.x -= sc.x;
+  wrap.position.z -= sc.z;
+  wrap.position.y -= sbox.min.y;
 
   const root = new THREE.Scene();
   root.add(wrap);
