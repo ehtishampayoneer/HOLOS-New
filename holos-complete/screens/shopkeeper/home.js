@@ -4,8 +4,9 @@
 
 Router.register('/shopkeeper/home', () => {
   log('Shopkeeper/Home', 'mounted');
-  const shop = State.get('shop') || State.getShopsList()[0];
-  State.set('shop', shop);
+  const shop = State.get('shop');
+  // No shop session yet -> send to login/switch instead of defaulting to one.
+  if (!shop) { setTimeout(() => Router.go('/shopkeeper/login'), 0); return '<div style="min-height:100vh;background:var(--bg);"></div>'; }
 
   // Force onboarding: new sellers must pick a theme and customize first
   if (shop && !shop.onboarded) {
@@ -22,6 +23,7 @@ Router.register('/shopkeeper/home', () => {
       <header class="sh-topbar">
         <button class="btn-icon-bare sh-tb-btn" onclick="Router.go('/')">${icon('arrow_left')}</button>
         <div class="sh-tb-brand">HOLOS <span class="sh-tb-seller">Seller</span></div>
+        <button class="btn-icon-bare sh-tb-btn" onclick="shopLogout()" title="Log out / switch shop">${icon('logout') || icon('arrow_left')}</button>
         <button class="btn-icon-bare sh-tb-btn" onclick="Router.go('/shopkeeper/settings')">${icon('settings')}</button>
       </header>
 
