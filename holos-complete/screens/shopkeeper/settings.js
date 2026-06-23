@@ -22,6 +22,7 @@ Router.register('/shopkeeper/settings', () => {
       <header class="ss2-top">
         <button class="btn-icon-bare" onclick="Router.go('/shopkeeper/home')">${icon('arrow_left')}</button>
         <div class="ss2-top-title">Shop settings</div>
+        <button class="btn-icon-bare" onclick="shopLogout()" title="Log out / switch shop" style="margin-left:auto;">${icon('logout')}</button>
         <div style="width:40px;"></div>
       </header>
 
