@@ -623,7 +623,7 @@ Router.register('/shopkeeper/add-review', () => {
   `;
 });
 
-function submitProduct() {
+async function submitProduct() {
   const d = getDraft();
   const shop = State.get('shop') || State.getShopsList()[0];
   const sub = Taxonomy.getSubcategoryById(d.subcategory);
@@ -657,7 +657,16 @@ function submitProduct() {
   };
 
   State.update('products', p => ({ ...p, [pid]: newProduct }));
-  if (window.DB && DB.isReady()) DB.createProduct(newProduct);
+  if (window.DB && DB.isReady()) {
+    try {
+      const res = await DB.createProduct(newProduct);
+      if (res && res.error) throw new Error(res.error.message || 'save failed');
+    } catch (e) {
+      alert('Could not save the product to the server:\n' + e.message + '\n\nYour model and details are still here — please check your connection and tap submit again.');
+      log('Shopkeeper/Add', 'createProduct failed: ' + e.message, 'error');
+      return; // keep the draft so the seller can retry without re-entering anything
+    }
+  }
   log('Shopkeeper/Add', `submitted ${pid} · status ${newProduct.status}`);
   resetDraft();
   Router.go('/shopkeeper/add-success?status=' + newProduct.status);
