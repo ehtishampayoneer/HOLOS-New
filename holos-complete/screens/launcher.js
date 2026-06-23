@@ -35,7 +35,7 @@ Router.register('/', () => {
             <span class="launcher-card-arrow">${icon('arrow_right')}</span>
           </button>
 
-          <button class="launcher-card" onclick="Router.go('/shopkeeper/home')">
+          <button class="launcher-card" onclick="Router.go('/shopkeeper/login')">
             <div class="launcher-card-meta">
               <div class="launcher-card-num">02</div>
               <h2 class="launcher-card-title">Shopkeeper</h2>
