@@ -13,6 +13,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" />
 
+  <!-- three.js for in-browser model normalisation (bakes real-world size into .glb + .usdz) -->
+  <script type="importmap">
+  { "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }}
+  </script>
+  <script type="module" src="scripts/model-baker.js"></script>
+
   <!-- model-viewer for real AR -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 
@@ -100,7 +109,7 @@
 
   <!-- Bootstrap -->
   <script>
-    window.HOLOS_BUILD = '2026-06-21-v19';
+    window.HOLOS_BUILD = '2026-06-21-v21';
     (async function bootstrap() {
       console.log('%c[HOLOS] build ' + window.HOLOS_BUILD, 'color:#8B6F47;font-weight:700');
       log('Boot', 'HOLOS marketplace starting · build ' + window.HOLOS_BUILD);
