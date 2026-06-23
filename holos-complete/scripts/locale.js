@@ -86,6 +86,7 @@ const Locale = (() => {
     tr: { name: 'Turkish', native: 'Türkçe', dir: 'ltr' },
     id: { name: 'Indonesian', native: 'Bahasa', dir: 'ltr' },
     bn: { name: 'Bengali', native: 'বাংলা', dir: 'ltr' },
+    uz: { name: 'Uzbek', native: 'Oʻzbekcha', dir: 'ltr' },
   };
 
   let current = null;
