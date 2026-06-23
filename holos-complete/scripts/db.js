@@ -298,7 +298,8 @@ const DB = (() => {
 
   async function createProduct(p) {
     const m = p.models || {};
-    const row = {
+    // Core columns that always exist + the model URLs and single real size.
+    const baseRow = {
       id: p.id, shop_id: p.shop, category: p.category, subcategory: p.subcategory,
       name: p.name, subtitle: p.subtitle || '',
       price: p.price, sale_price: p.salePrice || 0, currency: p.currency || 'PKR',
@@ -311,13 +312,23 @@ const DB = (() => {
       photo_issue: p.photoIssue || null,
       model_glb: m.glb || '', model_usdz: m.usdz || '',
       model_poster: m.poster || '', real_size_cm: m.realSizeCm || 0,
+      try_on: p.tryOn || null,
+    };
+    // Optional columns (added by migrations 9 & 11). If the DB doesn't have
+    // them, the full insert fails — so we retry with just the base row rather
+    // than silently losing the whole product (models + size included).
+    const fullRow = {
+      ...baseRow,
       real_w_cm: m.realDimsCm?.w || 0,
       real_h_cm: m.realDimsCm?.h || 0,
       real_d_cm: m.realDimsCm?.d || 0,
       scale_strategy: m.scaleStrategy || 'auto',
-      try_on: p.tryOn || null,
     };
-    const res = await sb.from('products').insert(row);
+    let res = await sb.from('products').insert(fullRow);
+    if (res.error && /real_(w|h|d)_cm|scale_strategy|column/.test(res.error.message)) {
+      log('DB', 'createProduct: optional size columns missing — saving base row (run migrations 9 & 11 for W/H/D)', 'warn');
+      res = await sb.from('products').insert(baseRow);
+    }
     return check(res, 'createProduct');
   }
 
