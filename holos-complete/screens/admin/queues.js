@@ -639,7 +639,29 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
       if (el) el.addEventListener('input', updatePreview);
     });
     if (mv) mv.addEventListener('load', updatePreview);
-    if (mv) mv.addEventListener('load', async () => { try { const raw = await ModelFit.measureRaw(mv); SizeEditor.setRawWarning('apr', raw); } catch (e) {} });
+    if (mv) mv.addEventListener('load', async () => {
+      try {
+        const raw = await ModelFit.measureRaw(mv);
+        SizeEditor.setRawWarning('apr', raw);
+        // Bridge: the seller form saves a single real size (realSizeCm) with no
+        // W/H/D. Convert it into concrete W/H/D using the model's real
+        // proportions so the admin sees and can edit the seller's size (and it
+        // matches what AR/baking will use). Only fills empty fields.
+        const cur = SizeEditor.read('apr').realDimsCm;
+        const single = p.models && p.models.realSizeCm;
+        if (raw && single > 0 && !(cur.w || cur.h || cur.d)) {
+          const longest = Math.max(raw.x, raw.y, raw.z) || 1;
+          const f = single / (longest * 100); // scale so longest axis = single cm
+          const fill = (id, meters) => {
+            const el = document.getElementById(id);
+            if (el && !el.value) el.value = Math.round(meters * 100 * f * 10) / 10;
+          };
+          fill('apr-w', raw.x); fill('apr-h', raw.y); fill('apr-d', raw.z);
+          SizeEditor.updateDiagram('apr');
+          updatePreview();
+        }
+      } catch (e) {}
+    });
   }, 100);
 
   // Build spec rows from schema
@@ -717,7 +739,7 @@ Router.registerDynamic('/admin/product-review/', (pid) => {
             <div style="margin-top:var(--s-4);padding-top:var(--s-4);border-top:1px solid var(--border);">
               <label class="fr-label" style="margin-bottom:var(--s-3);display:block;">Real-world size (W × H × D) — required for accurate AR</label>
               ${SizeEditor.render('apr', p.subcategory, p.models)}
-              ${(!(p.models?.realDimsCm?.w || p.models?.realDimsCm?.h || p.models?.realDimsCm?.d)) ? `<div class="fr-hint" style="color:var(--danger);font-weight:600;margin-top:var(--s-3);">⚠ No size set yet — AR will show the model at its raw export size which is often wrong.</div>` : ''}
+              ${(!(p.models?.realDimsCm?.w || p.models?.realDimsCm?.h || p.models?.realDimsCm?.d || p.models?.realSizeCm)) ? `<div class="fr-hint" style="color:var(--danger);font-weight:600;margin-top:var(--s-3);">⚠ No size set yet — AR will show the model at its raw export size which is often wrong.</div>` : ''}
             </div>
 
             <!-- Model Audit panel -->
