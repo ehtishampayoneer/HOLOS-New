@@ -79,6 +79,12 @@ async function bake(glbUrl, target, opts = {}) {
   const model = gltf.scene || (gltf.scenes && gltf.scenes[0]);
   if (!model) throw new Error('model had no scene');
 
+  // Strip any embedded animation so the normalized model is fully static —
+  // some source models / USDZs auto-play an idle/rotate clip in AR (esp. iOS
+  // Quick Look), which looks like the object drifting or spinning on its own.
+  gltf.animations = [];
+  model.traverse((o) => { if (o.animations) o.animations = []; });
+
   // True size at scale 1
   const box = new THREE.Box3().setFromObject(model);
   const rsize = new THREE.Vector3(); box.getSize(rsize);
