@@ -81,19 +81,19 @@ Router.register('/', () => {
       .launcher-locale-btn {
         position: absolute;
         top: var(--s-4); right: var(--s-4);
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(8px);
-        color: white;
+        background: var(--surface, #FFFFFF);
+        color: var(--ink, #1A1714);
         padding: 8px 14px;
-        border: 1px solid rgba(255,255,255,0.15);
+        border: 1px solid var(--border, #E5DFD3);
         border-radius: 999px;
         font-size: var(--t-small);
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         z-index: 10;
-        transition: background 160ms;
+        box-shadow: 0 2px 10px rgba(26,23,20,0.10);
+        transition: background 160ms, box-shadow 160ms;
       }
-      .launcher-locale-btn:hover { background: rgba(255,255,255,0.15); }
+      .launcher-locale-btn:hover { background: var(--surface-elev, #FAF7F1); box-shadow: 0 4px 14px rgba(26,23,20,0.14); }
       
       .launcher-main {
         width: 100%;
